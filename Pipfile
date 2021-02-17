@@ -16,6 +16,8 @@ flask-restful = "*"
 marshmallow-sqlalchemy = "*"
 pyjwt = "*"
 flask-jwt-extended = "*"
+flask-restful-swagger = "*"
+flask-restful-swagger-2 = "*"
 
 [requires]
 python_version = "3.7"

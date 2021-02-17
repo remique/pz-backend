@@ -1,28 +1,54 @@
 from flask import Response, request, jsonify, make_response, json
 from database.models import User
-from flask_restful import Resource
 from .schemas import UserSchema
 from database.db import db
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
     get_jwt_identity
 )
+from flask_restful_swagger_2 import Api, swagger, Resource, Schema
+from .swagger_models import User as UserSwaggerModel
 
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
 
 
 class UsersApi(Resource):
-
-    # GET all users from the database
+    @swagger.doc({
+        'tags': ['user'],
+        'description': 'Returns ALL the users',
+        'responses': {
+            '200': {
+                'description': 'Successfully get all the users',
+            }
+        }
+    })
     def get(self):
-
+        """Return ALL the users"""
         all_users = User.query.all()
         result = users_schema.dump(all_users)
         return jsonify(result)
 
-    # POST a new user
+    @swagger.doc({
+        'tags': ['user'],
+        'description': 'Adds a new user',
+        'parameters': [
+            {
+                'name': 'Body',
+                'in': 'body',
+                'schema': UserSwaggerModel,
+                'type': 'object',
+                'required': 'true'
+            },
+        ],
+        'responses': {
+            '200': {
+                'description': 'Users',
+            }
+        }
+    })
     def post(self):
+        """Add a new user"""
         email = request.json['email']
         password = request.json['password']
         firstname = request.json['firstname']
@@ -57,8 +83,26 @@ class UserApi(Resource):
 
         return user_schema.jsonify(single_user)
 
-    # PUT updates user info
+    @swagger.doc({
+        'tags': ['user'],
+        'description': 'Updates an user',
+        'parameters': [
+            {
+                'name': 'Body',
+                'in': 'body',
+                'schema': UserSwaggerModel,
+                'type': 'object',
+                'required': 'true'
+            },
+        ],
+        'responses': {
+            '200': {
+                'description': 'Users',
+            }
+        }
+    })
     def put(self, id):
+        """Update user"""
         user = User.query.get(id)
 
         # TODO: Maybe we can update certain user without specifying
@@ -82,7 +126,28 @@ class UserApi(Resource):
         db.session.commit()
         return user_schema.jsonify(user)
 
+    @swagger.doc({
+        'tags': ['user'],
+        'description': 'Deletes an user',
+        'parameters': [
+            {
+                'name': 'id',
+                'in': 'path',
+                'required': 'true',
+                'type': 'integer',
+                'schema': {
+                    'type': 'integer'
+                }
+            }
+        ],
+        'responses': {
+            '200': {
+                'description': 'Users',
+            }
+        }
+    })
     def delete(self, id):
+        """Delete user"""
         user = db.session.query(User).filter(User.id == id).first()
         db.session.delete(user)
         db.session.commit()
@@ -113,7 +178,24 @@ class LoginApi(Resource):
 
 
 class ProtectedApi(Resource):
-    @jwt_required
+    @swagger.doc({
+        'tags': ['protected'],
+        'description': 'Protected endpoint for testing only',
+        'produces': [
+            'application/json'
+        ],
+        'responses': {
+            '200': {
+                'description': 'Authorized',
+            },
+            '401': {
+                'description': 'Unauthorized'
+            }
+        }
+    })
+    @jwt_required()
     def get(self):
+        """Check if user is authorized"""
         current_user = get_jwt_identity()
         return jsonify({"msg": "Access granted"})
+        # return jsonify(current_user), 201

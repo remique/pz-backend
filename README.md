@@ -1,5 +1,9 @@
 # Backend aplikacji - Zespół 7
 
+### Dokumentacja
+
+Dokumentacja jest oparta na SwaggerUI. Można tam sobie przetestować poszczególne endpointy. Dostępna jest pod adresem: [localhost:5000/api](http://localhost:5000/api). Jest to redirect na stronę parsującą wygenerowany dokument Swaggera.
+
 ### Korzystanie z Pip
 
 Korzystamy z `pip`, żeby mieć zgodne wersje bibliotek itp.
