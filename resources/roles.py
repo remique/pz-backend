@@ -16,6 +16,7 @@ roles_schema = RoleSchema(many=True)
 user_role_schema = UserRoleSchema()
 user_roles_schema = UserRoleSchema(many=True)
 
+
 class RolesApi(Resource):
     @swagger.doc({
         'tags': ['role'],
@@ -63,9 +64,29 @@ class RolesApi(Resource):
 
         return role_schema.jsonify(new_role)
 
+
 class RoleApi(Resource):
     # GET single role with given id
+
+    @swagger.doc({
+        'tags': ['role'],
+        'description': 'Get specific role',
+        'parameters': [
+            {
+                'name': 'id',
+                'description': 'Role identifier',
+                'in': 'path',
+                'type': 'integer',
+            }
+        ],
+        'responses': {
+            '200': {
+                'description': 'Successfully got role'
+            }
+        }
+    })
     def get(self, id):
+        """Get role by ID"""
         single_role = Role.query.get(id)
 
         if not single_role:
@@ -132,10 +153,19 @@ class RoleApi(Resource):
 
         return jsonify({'msg': 'Successfully removed role'})
 
+
 class UserRolesApi(Resource):
     @swagger.doc({
         'tags': ['userrole'],
-        'description': 'Returns ALL the user roles',
+        'description': 'Returns specific user roles',
+        'parameters': [
+            {
+                'name': 'userid',
+                'description': 'User identifier',
+                'in': 'path',
+                'type': 'integer'
+            }
+        ],
         'responses': {
             '200': {
                 'description': 'Successfully got all the userroles',
@@ -147,8 +177,9 @@ class UserRolesApi(Resource):
         if user is None:
             return jsonify({'msg': 'User doesnt exist'})
 
-        roles = user_roles_schema.dump(user.roles)
+        roles = roles_schema.dump(user.roles)
         return jsonify(roles)
+
 
 class UserRoleApi(Resource):
     @swagger.doc({
@@ -225,3 +256,4 @@ class UserRoleApi(Resource):
             return jsonify({'msg': 'Role removed'})
         else:
             return jsonify({'msg': 'User doesnt have selected role'})
+

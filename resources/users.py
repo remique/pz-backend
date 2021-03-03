@@ -75,6 +75,23 @@ class UsersApi(Resource):
 class UserApi(Resource):
 
     # GET single user with given id
+    @swagger.doc({
+        'tags': ['user'],
+        'description': 'Returns specific user',
+        'parameters': [
+            {
+                'name': 'id',
+                'in': 'path',
+                'type': 'integer',
+                'required': 'true'
+            },
+        ],
+        'responses': {
+            '200': {
+                'description': 'Successfully updated user',
+            }
+        }
+    })
     def get(self, id):
         single_user = User.query.get(id)
 
