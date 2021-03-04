@@ -27,6 +27,20 @@ class User(Schema):
     required = ['email', 'password', 'firstname', 'surname', 'sex', 'active']
 
 
+class Login(Schema):
+    type = 'object'
+    description = 'Must provide these when loggin in'
+    properties = {
+        'username': {
+            'type': 'string'
+        },
+        'password': {
+            'type': 'string'
+        },
+    }
+    required = ['username', 'password']
+
+
 class Institution(Schema):
     type = 'object'
     description = 'Must provide these when creating new institution'

@@ -8,27 +8,42 @@ from database.db import db, init_db
 from resources.routes import initialize_routes
 from flask_jwt_extended import JWTManager
 
-from flask_restful_swagger_2 import Api
+from flask_restful_swagger_2 import Api, swagger
 
 import config
 
 app = Flask(__name__)
 CORS(app, resources={r"*": {"origins": "*"}})
 app.config.from_object('config.DevelopmentConfig')
-
 jwt = JWTManager(app)
+
+security_definitions = {
+    'api_key': {
+        'type': 'apiKey',
+        'name': 'Authorization',
+        'in': 'header',
+        'description': 'Example value **Bearer 12345**'
+    }
+}
+
+description = """
+Url: `localhost: 5000/api`. To jest tylko testowe API dla naszej aplikacji(v0.1). \
+Domyślnie przechodząc do API wszystkie endpointy i modele są zwinięte. Jeśli chcemy, aby \
+domyślnie były rozwinięte to usuwamy `docExpansion=none&`. \
+\n\n **Ważne!** Autoryzujemy na endpoincie `/login` a następnie wklejamy nasz token \
+do okienka **Authorize**. Po wpisaniu dobrego tokenu możemy w całości korzystać z API. 
+"""
 api = Api(app, api_version='0.1',
           api_spec_url='/api/swagger',
           title='API aplikacji dla przedszkoli',
-          description='Url: `localhost: 5000/api`. To jest tylko testowe API dla naszej aplikacji(v0.1). Póki co, w samej dokumentacji nie obsługujemy jeszcze autoryzacji - dodamy niedługo. ')
-
-# Redirect to API documentation
+          description=description,
+          security_definitions=security_definitions)
 
 
 @app.route('/api')
 def index():
     return """<head>
-    <meta http-equiv="refresh" content="0; url=http://petstore.swagger.io/?url=http://localhost:5000/api/swagger.json" />
+    <meta http-equiv="refresh" content="0; url=http://petstore.swagger.io/?docExpansion=none&url=http://localhost:5000/api/swagger.json" />
     </head>"""
 
 
