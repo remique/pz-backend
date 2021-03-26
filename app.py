@@ -50,3 +50,5 @@ def create_app(cfg):
     init_db(app)
     initialize_routes(api)
     return app
+
+# To jest jakis tam test
