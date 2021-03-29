@@ -124,6 +124,7 @@ class Activity(Schema):
     }
     required = ['sleep', 'food_scale']
 
+
 class DishMenu(Schema):
     type = 'object'
     description = 'Must provide these when creating dish menu'
@@ -137,6 +138,7 @@ class DishMenu(Schema):
         },
     }
     required = ['date']
+
 
 class Dish(Schema):
     type = 'object'
@@ -161,4 +163,36 @@ class Dish(Schema):
             'type': 'integer'
         }
     }
-    required = ['name', 'type', 'institution_id', 'dishMenu_id', 'is_alternative']
+    required = ['name', 'type', 'institution_id',
+                'dishMenu_id', 'is_alternative']
+
+
+class Conversation(Schema):
+    type = 'object'
+    description = 'Must provide these when creating new conversation'
+    properties = {
+        'user_one': {
+            'type': 'integer'
+        },
+        'user_two': {
+            'type': 'integer'
+        },
+    }
+    required = ['user_one', 'user_two']
+
+
+class ConversationReply(Schema):
+    type = 'object'
+    description = 'Must provide these when creating new reply'
+    properties = {
+        'reply': {
+            'type': 'string'
+        },
+        'reply_user_id': {
+            'type': 'integer'
+        },
+        'conv_id': {
+            'type': 'integer'
+        },
+    }
+    required = ['reply', 'reply_user_id', 'conv_id']

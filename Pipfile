@@ -19,6 +19,7 @@ flask-jwt-extended = "*"
 flask-restful-swagger = "*"
 flask-restful-swagger-2 = "*"
 flask-apscheduler = "*"
+sqlalchemy = "*"
 
 [requires]
 python_version = "3.7"

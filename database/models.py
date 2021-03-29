@@ -51,6 +51,9 @@ class User(db.Model):
     activity = db.relationship(
         'Activity', backref='user', lazy=True, uselist=False)
 
+    replies = db.relationship('ConversationReply',
+                              backref='user', lazy=True)
+
     def __init__(self, email, password, salt, firstname, surname, sex, active, created_at, updated_at):
         self.email = email
         self.password = password
@@ -69,8 +72,10 @@ class Institution(db.Model):
     city = db.Column(db.String(45), nullable=False)
     address = db.Column(db.String(128), nullable=False)
     contact_number = db.Column(db.String(15), nullable=False)
-    dishes = db.relationship('Dish', cascade="all,delete", backref='institution')
-    dishMenus = db.relationship('DishMenu', cascade="all,delete", backref='institution')
+    dishes = db.relationship(
+        'Dish', cascade="all,delete", backref='institution')
+    dishMenus = db.relationship(
+        'DishMenu', cascade="all,delete", backref='institution')
 
     def __init__(self, name, city, address, contact_number):
         self.name = name
@@ -104,16 +109,19 @@ class Activity(db.Model):
         self.food_scale = food_scale
         # self.user_id = user_id
 
+
 class DishMenu(db.Model):
     __tablename__ = 'dishmenu'
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.DateTime, nullable=False,
-                           default=db.func.current_timestamp())
+                     default=db.func.current_timestamp())
     institution_id = db.Column(db.Integer, db.ForeignKey('institution.id'))
     dishes = db.relationship('Dish', cascade="all,delete", backref='DishMenu')
+
     def __init__(self, date, institution_id):
         self.date = date
         self.institution_id = institution_id
+
 
 class Dish(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -131,3 +139,31 @@ class Dish(db.Model):
         self.institution_id = institution_id
         self.dishMenu_id = dishMenu_id
         self.is_alternative = is_alternative
+
+
+class Conversation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_one = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_two = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    conversation_replies = db.relationship('ConversationReply',
+                                           backref='conversation', lazy=True)
+
+    def __init__(self, user_one, user_two):
+        self.user_one = user_one
+        self.user_two = user_two
+
+
+class ConversationReply(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    reply = db.Column(db.String(512), nullable=False)
+    reply_time = db.Column(db.DateTime, nullable=False,
+                           default=db.func.current_timestamp())
+    reply_user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    conv_id = db.Column(db.Integer, db.ForeignKey('conversation.id'))
+
+    def __init__(self, reply, reply_time, reply_user_id, conv_id):
+        self.reply = reply
+        self.reply_time = reply_time
+        self.reply_user_id = reply_user_id
+        self.conv_id = conv_id
