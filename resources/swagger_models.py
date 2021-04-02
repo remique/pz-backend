@@ -171,14 +171,11 @@ class Conversation(Schema):
     type = 'object'
     description = 'Must provide these when creating new conversation'
     properties = {
-        'user_one': {
-            'type': 'integer'
-        },
         'user_two': {
             'type': 'integer'
         },
     }
-    required = ['user_one', 'user_two']
+    required = ['user_two']
 
 
 class ConversationReply(Schema):
@@ -188,11 +185,8 @@ class ConversationReply(Schema):
         'reply': {
             'type': 'string'
         },
-        'reply_user_id': {
-            'type': 'integer'
-        },
         'conv_id': {
             'type': 'integer'
         },
     }
-    required = ['reply', 'reply_user_id', 'conv_id']
+    required = ['reply', 'conv_id']

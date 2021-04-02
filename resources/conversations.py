@@ -21,22 +21,40 @@ conversations_replies_schema = ConversationReplySchema(many=True)
 class ConversationsApi(Resource):
     @swagger.doc({
         'tags': ['conversation'],
-        'description': 'Returns ALL the conversations',
+        'description': 'Returns ALL the conversations for logged user',
         'responses': {
             '200': {
-                'description': 'Successfully got all the conversations',
+                'description': 'Successfully got all the conversations for logged user',
             }
-        }
+        },
+        'security': [
+            {
+                'api_key': []
+            }
+        ]
     })
+    @jwt_required()
     def get(self):
-        """Return ALL the conversations"""
-        all_conversations = Conversation.query.all()
-        result = conversations_schema.dump(all_conversations)
-        return jsonify(result)
+        """Return ALL the conversations for logged user"""
+        jwt_email = get_jwt_identity()
+        current_user = User.query.filter_by(email=jwt_email).first()
+        conversations = Conversation.query.filter(
+            or_(Conversation.user_one == current_user.id, Conversation.user_two == current_user.id))
+
+        replies = []
+
+        for convo in conversations:
+            last_reply = ConversationReply.query.filter_by(
+                conv_id=convo.id).order_by(ConversationReply.reply_time.desc()).first()
+
+            if last_reply is not None:
+                replies.append(last_reply)
+
+        return conversations_replies_schema.jsonify(replies)
 
     @swagger.doc({
         'tags': ['conversation'],
-        'description': 'Adds a new conversation',
+        'description': 'Adds a new conversation for current user',
         'parameters': [
             {
                 'name': 'Body',
@@ -48,13 +66,23 @@ class ConversationsApi(Resource):
         ],
         'responses': {
             '200': {
-                'description': 'Successfully added new conversation',
+                'description': 'Successfully added new conversation for current user',
             }
-        }
+        },
+        'security': [
+            {
+                'api_key': []
+            }
+        ]
     })
+    @jwt_required()
     def post(self):
-        """Add a new conversation"""
-        user_one = request.json['user_one']
+        """Add a new conversation for current user"""
+        # user_one = request.json['user_one']
+        jwt_email = get_jwt_identity()
+        current_user = User.query.filter_by(email=jwt_email).first()
+
+        user_one = current_user.id
         user_two = request.json['user_two']
 
         does_exist = Conversation.query.filter(
@@ -82,8 +110,14 @@ class ConversationReplyApi(Resource):
             '200': {
                 'description': 'Successfully got all the conversations replies',
             }
-        }
+        },
+        'security': [
+            {
+                'api_key': []
+            }
+        ]
     })
+    @jwt_required()
     def get(self):
         """Return ALL the conversations replies"""
         all_replies = ConversationReply.query.all()
@@ -106,12 +140,21 @@ class ConversationReplyApi(Resource):
             '200': {
                 'description': 'Successfully added new conversation',
             }
-        }
+        },
+        'security': [
+            {
+                'api_key': []
+            }
+        ]
     })
+    @jwt_required()
     def post(self):
         """Add a new conversation reply"""
+        jwt_email = get_jwt_identity()
+        current_user = User.query.filter_by(email=jwt_email).first()
+
         reply = request.json['reply']
-        reply_user_id = request.json['reply_user_id']
+        reply_user_id = current_user.id
         conv_id = request.json['conv_id']
 
         # Check if conversation exists
@@ -134,44 +177,6 @@ class ConversationReplyApi(Resource):
         return conversation_reply_schema.jsonify(new_conv_reply)
 
 
-class ConversationApi(Resource):
-    @swagger.doc({
-        'tags': ['conversation'],
-        'description': 'Returns last messages in user\'s conversations',
-        'parameters': [
-            {
-                'name': 'user_id',
-                'in': 'path',
-                'type': 'integer',
-                'required': 'true'
-            },
-        ],
-        'responses': {
-            '200': {
-                'description': 'Successfully got last messages in user\'s conversations',
-            }
-        }
-    })
-    def get(self, user_id):
-        """Returns last message in user\'s conversations"""
-
-        # Filter all the conversations where user_one = user_id or user_two = user_id
-        # Then for loop of those conversations and query
-
-        conversations = Conversation.query.filter(
-            or_(Conversation.user_one == user_id, Conversation.user_two == user_id))
-
-        replies = []
-
-        for convo in conversations:
-            last_reply = ConversationReply.query.filter_by(
-                conv_id=convo.id).order_by(ConversationReply.reply_time.desc()).first()
-
-            replies.append(last_reply)
-
-        return conversations_replies_schema.jsonify(replies)
-
-
 class ConversationRepliesApi(Resource):
     @swagger.doc({
         'tags': ['conversation_reply'],
@@ -188,8 +193,14 @@ class ConversationRepliesApi(Resource):
             '200': {
                 'description': 'Successfully got all the replies in conversation',
             }
-        }
+        },
+        'security': [
+            {
+                'api_key': []
+            }
+        ]
     })
+    @jwt_required()
     def get(self, conv_id):
         """Return ALL the replies in given conversation"""
         conversation = Conversation.query.filter_by(id=conv_id).first()
@@ -200,7 +211,3 @@ class ConversationRepliesApi(Resource):
             conv_id=conv_id).order_by(ConversationReply.reply_time.desc()).all()
 
         return conversations_replies_schema.jsonify(replies)
-
-# GET conversation_reply/{conv_id} zwraca wszystkie wiadomosci dla conv_id
-
-# GET conversation/<conv_id> zwraca ostatnia wiadomosc

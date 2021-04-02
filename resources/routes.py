@@ -4,7 +4,7 @@ from .roles import RolesApi, RoleApi, UserRoleApi, UserRolesApi
 from .groups import GroupApi, GroupsApi, UserGroupsApi, UserGroupApi
 from .activities import ActivitiesApi, ActivityApi
 from .dishes import DishApi, DishesApi, DishMenuApi, DishMenusApi
-from .conversations import ConversationsApi, ConversationReplyApi, ConversationRepliesApi, ConversationApi
+from .conversations import ConversationsApi, ConversationReplyApi, ConversationRepliesApi
 
 
 def initialize_routes(api):
@@ -33,7 +33,6 @@ def initialize_routes(api):
     api.add_resource(UserGroupApi, '/usergroup')
 
     api.add_resource(ConversationsApi, '/conversation')
-    api.add_resource(ConversationApi, '/conversation/<user_id>')
     api.add_resource(ConversationReplyApi, '/conversation_reply')
     api.add_resource(ConversationRepliesApi, '/conversation_reply/<conv_id>')
 
