@@ -44,6 +44,9 @@ class User(db.Model):
                            default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, nullable=False,
                            default=db.func.current_timestamp())
+
+    institution_id = db.Column(db.Integer, db.ForeignKey('institution.id'))
+
     roles = db.relationship('Role', secondary=user_roles,
                             backref=db.backref('users', lazy='dynamic'))
     groups = db.relationship('Group', secondary=user_groups,
@@ -54,12 +57,13 @@ class User(db.Model):
     replies = db.relationship('ConversationReply',
                               backref='user', lazy=True)
 
-    def __init__(self, email, password, salt, firstname, surname, sex, active, created_at, updated_at):
+    def __init__(self, email, password, salt, firstname, surname, institution_id, sex, active, created_at, updated_at):
         self.email = email
         self.password = password
         self.salt = salt
         self.firstname = firstname
         self.surname = surname
+        self.institution_id = institution_id
         self.sex = sex
         self.active = active
         self.created_at = created_at
@@ -76,6 +80,9 @@ class Institution(db.Model):
         'Dish', cascade="all,delete", backref='institution')
     dishMenus = db.relationship(
         'DishMenu', cascade="all,delete", backref='institution')
+
+    users = db.relationship(
+        'User', cascade="all,delete", backref='institution')
 
     def __init__(self, name, city, address, contact_number):
         self.name = name
@@ -131,7 +138,8 @@ class Dish(db.Model):
     type = db.Column(db.String(45), nullable=False)
     institution_id = db.Column(db.Integer, db.ForeignKey('institution.id'))
     is_alternative = db.Column(db.Integer, nullable=False)
-    dishMenus = db.relationship('DishMenu', cascade="all,delete", backref='Dish')
+    dishMenus = db.relationship(
+        'DishMenu', cascade="all,delete", backref='Dish')
 
     def __init__(self, name, description, type, institution_id, is_alternative):
         self.name = name

@@ -23,8 +23,12 @@ class User(Schema):
         'active': {
             'type': 'integer',
         },
+        'institution_id': {
+            'type': 'integer',
+        },
     }
-    required = ['email', 'password', 'firstname', 'surname', 'sex', 'active']
+    required = ['email', 'password', 'firstname',
+                'surname', 'sex', 'active', 'institution_id']
 
 
 class Login(Schema):
