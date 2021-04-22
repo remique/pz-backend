@@ -1,10 +1,10 @@
 from flask import Response, request, jsonify, make_response, json
 from database.models import User, Activity
-from .schemas import UserSchema
+from .schemas import UserSchema, UserTokenSchema
 from database.db import db
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
-    get_jwt_identity, current_user
+    get_jwt_identity, current_user, create_refresh_token, get_jwt
 )
 from flask_restful_swagger_2 import Api, swagger, Resource, Schema
 from .swagger_models import User as UserSwaggerModel
@@ -14,6 +14,8 @@ from .security import generate_salt, generate_hash
 
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
+
+user_token_schema = UserTokenSchema()
 
 
 class UsersApi(Resource):
@@ -242,10 +244,41 @@ class LoginApi(Resource):
         key = generate_hash(password, salt)
 
         if user.password == key:
-            access_token = create_access_token(identity=email)
-            return jsonify({"access_token": access_token})
+            user_claims = user_token_schema.dump(user)
+
+            access_token = create_access_token(
+                identity=email, additional_claims=user_claims)
+            refresh_token = create_refresh_token(
+                identity=email, additional_claims=user_claims)
+            return jsonify({"access_token": access_token, "refresh_token": refresh_token})
         else:
             return jsonify({"msg": "Wrong password!"})
+
+
+class RefreshTokenApi(Resource):
+
+    @swagger.doc({
+        'tags': ['login'],
+        'description': 'Refresh expiring token',
+        'parameters': [
+            {
+                'name': 'Authorization',
+                'in': 'header',
+                'type': 'string'
+            }
+        ],
+        'responses': {
+            '200': {
+                'description': 'Successfully refreshed token',
+            }
+        },
+    })
+    @jwt_required(refresh=True)
+    def post(self):
+        identity = get_jwt_identity()
+        access_token = create_access_token(identity=identity, fresh=False)
+
+        return jsonify(access_token=access_token)
 
 
 class ProtectedApi(Resource):
@@ -275,4 +308,7 @@ class ProtectedApi(Resource):
     def get(self):
         """Check if user is authorized"""
         current_user = get_jwt_identity()
+
+        # claims = get_jwt()
+        # return jsonify({"msg": claims})
         return jsonify({"msg": "Access granted"})

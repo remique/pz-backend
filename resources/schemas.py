@@ -20,6 +20,7 @@ class UserSchema(ma.Schema):
         dateformat = '%Y-%m-%d %H:%M:%S%z'
     roles = ma.Nested('RoleSchema', many=True)
 
+
 class InstitutionSchema(ma.Schema):
     class Meta:
         model = Institution
@@ -62,6 +63,7 @@ class DishMenuSchema(ma.Schema):
         ordered = True
         fields = ("id", "date", "institution_id", "dish_id")
 
+
 class ConversationSchema(ma.Schema):
     class Meta:
         model = Conversation
@@ -84,3 +86,12 @@ class UserNestedSchema(ma.Schema):
         ordered = True
         fields = ("id", "email", "firstname", "surname",
                   "sex", "active")
+
+
+class UserTokenSchema(ma.Schema):
+    class Meta:
+        model = User
+        ordered = True
+        fields = ("id", "email", "firstname", "surname",
+                  "sex", "active", "roles")
+    roles = ma.Nested('RoleSchema', many=True)
