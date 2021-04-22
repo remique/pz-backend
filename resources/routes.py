@@ -1,4 +1,4 @@
-from .users import UserApi, UsersApi, LoginApi, ProtectedApi
+from .users import UserApi, UsersApi, LoginApi, ProtectedApi, RefreshTokenApi
 from .institutions import InstitutionsApi, InstitutionApi
 from .roles import RolesApi, RoleApi, UserRoleApi, UserRolesApi
 from .groups import GroupApi, GroupsApi, UserGroupsApi, UserGroupApi
@@ -37,4 +37,5 @@ def initialize_routes(api):
     api.add_resource(ConversationRepliesApi, '/conversation_reply/<conv_id>')
 
     api.add_resource(LoginApi, '/login')
+    api.add_resource(RefreshTokenApi, '/refresh')
     api.add_resource(ProtectedApi, '/protected')
