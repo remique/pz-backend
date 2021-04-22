@@ -3,7 +3,7 @@ from database.db import db
 from database.models import (
     User, Institution, Role, Group,
     Activity, Dish, DishMenu, Conversation,
-    ConversationReply
+    ConversationReply, Image, News, NewsCategory
 )
 from flask import Flask, render_template, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
@@ -19,7 +19,6 @@ class UserSchema(ma.Schema):
                   "institution_id", "sex", "active", "created_at", "updated_at", "roles")
         dateformat = '%Y-%m-%d %H:%M:%S%z'
     roles = ma.Nested('RoleSchema', many=True)
-
 
 class InstitutionSchema(ma.Schema):
     class Meta:
@@ -85,7 +84,25 @@ class UserNestedSchema(ma.Schema):
         model = User
         ordered = True
         fields = ("id", "email", "firstname", "surname",
-                  "institution_id", "sex", "active")
+                  "sex", "active")
+
+class ImageSchema(ma.Schema):
+    class Meta:
+        model = Image
+        ordered = True
+        fields = ("id", "url", "created_at", "updated_at")
+
+class NewsSchema(ma.Schema):
+    class Meta:
+        model = News
+        ordered = True
+        fields = ("title", "details", "status", "view_count", "created_at", "updated_at", "category_id", "institution_id", "author_id", "image_id")
+
+class NewsCategorySchema(ma.Schema):
+    class Meta:
+        model = NewsCategory
+        ordered = True
+        fields = ("id", "name", "created_at", "updated_at")
 
 
 class UserTokenSchema(ma.Schema):

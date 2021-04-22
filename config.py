@@ -7,6 +7,7 @@ class Config(object):
     JWT_SECRET_KEY = 'secret-key'
     SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
     SCHEDULER_API_ENABLED = False
+    MAX_CONTENT_LENGTH = 10 * 1024 * 1024
 
 
 class ProductionConfig(Config):

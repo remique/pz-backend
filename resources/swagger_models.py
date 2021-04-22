@@ -193,3 +193,54 @@ class ConversationReply(Schema):
         },
     }
     required = ['reply', 'conv_id']
+
+class Image(Schema):
+    type = 'object'
+    description = 'Must provide these when creating new image'
+    properties = {
+        'url': {
+            'type': 'string'
+        }
+    }
+    required = ['url']
+
+class News(Schema):
+    type = 'object'
+    description = 'Must provide these when creating news'
+    properties = {
+        'title': {
+            'type': 'string'
+        },
+        'details': {
+            'type': 'string'
+        },
+        'status': {
+            'type': 'string'
+        },
+        'view_count': {
+            'type': 'integer'
+        },
+        'category_id': {
+            'type': 'integer'
+        },
+        'institution_id': {
+            'type': 'integer'
+        },
+        'author_id': {
+            'type': 'integer'
+        },
+        'image_id': {
+            'type': 'integer'
+        }
+    }
+    required = ['title', 'details', 'status', 'view_count']
+
+class NewsCategory(Schema):
+    type = 'object'
+    description = 'Must provide these when creating news category'
+    properties = {
+        'name': {
+            'type': 'string'
+        }
+    }
+    required = ['name']

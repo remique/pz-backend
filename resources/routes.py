@@ -5,7 +5,8 @@ from .groups import GroupApi, GroupsApi, UserGroupsApi, UserGroupApi
 from .activities import ActivitiesApi, ActivityApi
 from .dishes import DishApi, DishesApi, DishMenuApi, DishMenusApi
 from .conversations import ConversationsApi, ConversationReplyApi, ConversationRepliesApi
-
+from .images import ImageApi, ImagesApi
+from .news import NewsApi, NewsMApi, NewsCategoryApi, NewsCategoriesApi
 
 def initialize_routes(api):
     api.add_resource(UsersApi, '/user')
@@ -39,3 +40,11 @@ def initialize_routes(api):
     api.add_resource(LoginApi, '/login')
     api.add_resource(RefreshTokenApi, '/refresh')
     api.add_resource(ProtectedApi, '/protected')
+
+    api.add_resource(ImagesApi, '/image')
+    api.add_resource(ImageApi, '/image/<id>')
+
+    api.add_resource(NewsMApi, '/news')
+    api.add_resource(NewsApi, '/news/<id>')
+    api.add_resource(NewsCategoryApi, '/newscategory/<id>')
+    api.add_resource(NewsCategoriesApi, '/newscategory')
