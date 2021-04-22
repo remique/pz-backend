@@ -12,6 +12,8 @@ from .swagger_models import Login as LoginSwaggerModel
 from flask_sqlalchemy import SQLAlchemy
 from .security import generate_salt, generate_hash
 
+import math
+
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
 
@@ -23,12 +25,29 @@ class UsersApi(Resource):
     # dla poszczegolnych endpointow
     @swagger.doc({
         'tags': ['user'],
-        'description': 'Returns ALL the users',
+        'description': '''Paginate users and display all pagination info and Users inside \
+                          the *data* field. If there is no **page** provided, then it will \
+                          set automatically to page 1. Also, it will display up to 15 users \
+                          per page, unless provided otherwise in optional **per_page** argument.''',
         'responses': {
             '200': {
                 'description': 'Successfully got all the users',
             }
         },
+        'parameters': [
+            {
+                'name': 'page',
+                'in': 'query',
+                'type': 'integer',
+                'description': '*Optional*: Which page to return'
+            },
+            {
+                'name': 'per_page',
+                'in': 'query',
+                'type': 'integer',
+                'description': '*Optional*: How many users to return per page *(default=15)*'
+            },
+        ],
         'security': [
             {
                 'api_key': []
@@ -37,9 +56,40 @@ class UsersApi(Resource):
     })
     @jwt_required()
     def get(self):
-        """Return ALL the users"""
-        all_users = User.query.all()
-        result = users_schema.dump(all_users)
+        """Return ALL the users in Institution of current user"""
+
+        # Get currently logged user's InstitutionId
+        claims = get_jwt()
+        user_institution_id = claims['institution_id']
+
+        # Get query parameters
+        page = request.args.get('page')
+        per_page = request.args.get('per_page')
+
+        # If page is not provided, set to first page by default
+        if page is None:
+            page = 1
+
+        # Default pagination
+        if per_page is None:
+            per_page = 15
+
+        page_offset = (int(page) - 1) * int(per_page)
+
+        users_total = User.query.filter(
+            User.institution_id == user_institution_id).count()
+
+        users_query = User.query.filter(User.institution_id == user_institution_id).offset(
+            page_offset).limit(per_page).all()
+        query_result = users_schema.dump(users_query)
+
+        result = {
+            "total": users_total,
+            "per_page": int(per_page),
+            "current_page": int(page),
+            "last_page": math.ceil(int(users_total) / int(per_page)),
+            "data": query_result
+        }
 
         return jsonify(result)
 
@@ -69,13 +119,14 @@ class UsersApi(Resource):
         surname = request.json['surname']
         sex = request.json['sex']
         active = request.json['active']
+        institution_id = request.json['institution_id']
         created_at = db.func.current_timestamp()
         updated_at = db.func.current_timestamp()
 
         salt_str = generate_salt(16)
         key = generate_hash(password, salt_str)
 
-        new_user = User(email, key, salt_str, firstname, surname, sex, active,
+        new_user = User(email, key, salt_str, firstname, surname, institution_id, sex, active,
                         created_at, updated_at)
 
         # Check if user with given email already exists
