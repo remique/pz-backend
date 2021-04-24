@@ -28,7 +28,8 @@ class UsersApi(Resource):
         'description': '''Paginate users and display all pagination info and Users inside \
                           the *data* field. If there is no **page** provided, then it will \
                           set automatically to page 1. Also, it will display up to 15 users \
-                          per page, unless provided otherwise in optional **per_page** argument.''',
+                          per page, unless provided otherwise in optional **per_page** argument. \
+                          \n * **page** constraints: [1, max_page] \n * **per_page** constraints: [5, 30]''',
         'responses': {
             '200': {
                 'description': 'Successfully got all the users',
@@ -45,7 +46,7 @@ class UsersApi(Resource):
                 'name': 'per_page',
                 'in': 'query',
                 'type': 'integer',
-                'description': '*Optional*: How many users to return per page *(default=15)*'
+                'description': '*Optional*: How many users to return per page'
             },
         ],
         'security': [
@@ -58,6 +59,10 @@ class UsersApi(Resource):
     def get(self):
         """Return ALL the users in Institution of current user"""
 
+        # TODO: Move it somewhere else? Also make it global?
+        MIN_PER_PAGE = 5
+        MAX_PER_PAGE = 30
+
         # Get currently logged user's InstitutionId
         claims = get_jwt()
         user_institution_id = claims['institution_id']
@@ -67,12 +72,18 @@ class UsersApi(Resource):
         per_page = request.args.get('per_page')
 
         # If page is not provided, set to first page by default
-        if page is None:
+        if page is None or int(page) < 1:
             page = 1
 
         # Default pagination
         if per_page is None:
             per_page = 15
+
+        if int(per_page) < MIN_PER_PAGE:
+            per_page = MIN_PER_PAGE
+
+        if int(per_page) > MAX_PER_PAGE:
+            per_page = MAX_PER_PAGE
 
         page_offset = (int(page) - 1) * int(per_page)
 
@@ -327,7 +338,14 @@ class RefreshTokenApi(Resource):
     @jwt_required(refresh=True)
     def post(self):
         identity = get_jwt_identity()
-        access_token = create_access_token(identity=identity, fresh=False)
+        claims = get_jwt()
+        user_get_id = claims['id']
+
+        user = User.query.filter_by(id=user_get_id).first()
+        user_claims = user_token_schema.dump(user)
+
+        access_token = create_access_token(
+            identity=identity, fresh=False, additional_claims=user_claims)
 
         return jsonify(access_token=access_token)
 
@@ -360,6 +378,6 @@ class ProtectedApi(Resource):
         """Check if user is authorized"""
         current_user = get_jwt_identity()
 
-        # claims = get_jwt()
-        # return jsonify({"msg": claims})
-        return jsonify({"msg": "Access granted"})
+        claims = get_jwt()
+        return jsonify({"msg": claims})
+        # return jsonify({"msg": "Access granted"})

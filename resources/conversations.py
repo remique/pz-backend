@@ -1,6 +1,8 @@
 from flask import Response, request, jsonify, make_response, json
 from database.models import Conversation, User, ConversationReply
-from .schemas import ConversationSchema, ConversationReplySchema
+from .schemas import (
+    ConversationSchema, ConversationReplySchema, ConversationLastSchema
+)
 from database.db import db
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
@@ -13,6 +15,7 @@ from sqlalchemy import and_, or_
 
 conversation_schema = ConversationSchema()
 conversations_schema = ConversationSchema(many=True)
+conversations_last_schema = ConversationLastSchema(many=True)
 
 conversation_reply_schema = ConversationReplySchema()
 conversations_replies_schema = ConversationReplySchema(many=True)
@@ -39,18 +42,28 @@ class ConversationsApi(Resource):
         jwt_email = get_jwt_identity()
         current_user = User.query.filter_by(email=jwt_email).first()
         conversations = Conversation.query.filter(
-            or_(Conversation.user_one == current_user.id, Conversation.user_two == current_user.id))
+            or_(Conversation.user_one == current_user.id,
+                Conversation.user_two == current_user.id))
 
-        replies = []
+        # TODO: Maybe optimize it somehow?
 
+        # Copying query to separate list, so we won't delete actual records
+        conversations_copy = []
         for convo in conversations:
+            conversations_copy.append(convo)
+
+        # For each conversation we clear all the replies and leave out
+        # only the last one
+        for convo in conversations_copy:
             last_reply = ConversationReply.query.filter_by(
                 conv_id=convo.id).order_by(ConversationReply.reply_time.desc()).first()
+            convo.conversation_replies.clear()
 
+            # Don't insert None into the list
             if last_reply is not None:
-                replies.append(last_reply)
+                convo.conversation_replies.append(last_reply)
 
-        return conversations_replies_schema.jsonify(replies)
+        return conversations_last_schema.jsonify(conversations_copy)
 
     @swagger.doc({
         'tags': ['conversation'],
