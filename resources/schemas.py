@@ -78,7 +78,31 @@ class ConversationSchema(ma.Schema):
     class Meta:
         model = Conversation
         ordered = True
-        fields = ("id", "user_one", "user_two")
+        fields = ("id", "user_one", "user_two", "conversation_replies")
+    conversation_replies = ma.Nested(
+        'ConversationReplySchema', many=True)
+
+
+class ConversationLastSchema(ma.Schema):
+    class Meta:
+        model = Conversation
+        ordered = True
+        fields = ("id", "user_one_obj", "user_two_obj", "conversation_replies")
+
+    conversation_replies = ma.Nested(
+        'ConversationReplyLastSchema', many=True, data_key='last_reply')
+
+    user_two_obj = ma.Nested(
+        'UserNestedSchema', many=False, data_key='user_two')
+
+
+class ConversationReplyLastSchema(ma.Schema):
+    class Meta:
+        model = ConversationReply
+        ordered = True
+        fields = ("id", "reply", "reply_time",
+                  "reply_user_id")
+    # reply_user = ma.Nested('UserNestedSchema', many=False)
 
 
 class ConversationReplySchema(ma.Schema):
@@ -109,7 +133,8 @@ class NewsSchema(ma.Schema):
     class Meta:
         model = News
         ordered = True
-        fields = ("title", "details", "priority", "created_at", "updated_at", "category_id", "institution_id", "author_id")
+        fields = ("title", "details", "priority", "created_at",
+                  "updated_at", "category_id", "institution_id", "author_id")
 
 
 class NewsCategorySchema(ma.Schema):
