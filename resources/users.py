@@ -327,7 +327,14 @@ class RefreshTokenApi(Resource):
     @jwt_required(refresh=True)
     def post(self):
         identity = get_jwt_identity()
-        access_token = create_access_token(identity=identity, fresh=False)
+        claims = get_jwt()
+        user_get_id = claims['id']
+
+        user = User.query.filter_by(id=user_get_id).first()
+        user_claims = user_token_schema.dump(user)
+
+        access_token = create_access_token(
+            identity=identity, fresh=False, additional_claims=user_claims)
 
         return jsonify(access_token=access_token)
 
@@ -360,6 +367,6 @@ class ProtectedApi(Resource):
         """Check if user is authorized"""
         current_user = get_jwt_identity()
 
-        # claims = get_jwt()
-        # return jsonify({"msg": claims})
-        return jsonify({"msg": "Access granted"})
+        claims = get_jwt()
+        return jsonify({"msg": claims})
+        # return jsonify({"msg": "Access granted"})
