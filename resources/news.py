@@ -29,7 +29,7 @@ class NewsMApi(Resource):
     def get(self):
         """Return ALL the news"""
         all_news = News.query.all()
-        result = news_schema.dump(all_news)
+        result = newsM_schema.dump(all_news)
         return jsonify(result)
 
     @swagger.doc({
@@ -54,12 +54,10 @@ class NewsMApi(Resource):
         """Add a new news"""
         title = request.json['title']
         details = request.json['details']
-        status = request.json['status']
-        view_count = request.json['view_count']
+        priority = request.json['priority']
         category_id = request.json['category_id']
         institution_id = request.json['institution_id']
         author_id = request.json['author_id']
-        image_id = request.json['image_id']
 
         created_at = db.func.current_timestamp()
         updated_at = db.func.current_timestamp()
@@ -76,11 +74,7 @@ class NewsMApi(Resource):
         if not author:
             return jsonify({'msg': 'Author/User does not exist'})
 
-        image = Image.query.get(image_id)
-        if not image:
-            return jsonify({'msg': 'Image does not exist'})
-
-        new_news = News(title, details, status, view_count, created_at, updated_at, category_id, institution_id, author_id, image_id)
+        new_news = News(title, details, priority, created_at, updated_at, category_id, institution_id, author_id)
 
         db.session.add(new_news)
         db.session.commit()
@@ -132,12 +126,11 @@ class NewsApi(Resource):
 
         title = request.json['title']
         details = request.json['details']
-        status = request.json['status']
-        view_count = request.json['view_count']
+        priority = request.json['priority']
         category_id = request.json['category_id']
         institution_id = request.json['institution_id']
         author_id = request.json['author_id']
-        image_id = request.json['image_id']
+
 
         updated_at = db.func.current_timestamp()
 
@@ -153,18 +146,12 @@ class NewsApi(Resource):
         if not author:
             return jsonify({'msg': 'Author/User does not exist'})
 
-        image = Image.query.get(image_id)
-        if not image:
-            return jsonify({'msg': 'Image does not exist'})
-
         news.title = title
         news.details = details
-        news.status = status
-        news.view_count = view_count
+        news.priority = priority
         news.category_id = category_id
         news.institution_id = institution_id
         news.author_id = author_id
-        news.image_id = image_id
         news.updated_at =updated_at
 
         db.session.commit()

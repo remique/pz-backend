@@ -149,3 +149,4 @@ class ImageApi(Resource):
         db.session.commit()
 
         return jsonify({'msg': 'Successfully removed image'})
+

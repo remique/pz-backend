@@ -214,11 +214,8 @@ class News(Schema):
         'details': {
             'type': 'string'
         },
-        'status': {
-            'type': 'string'
-        },
-        'view_count': {
-            'type': 'integer'
+        'priority': {
+            'type': 'boolean'
         },
         'category_id': {
             'type': 'integer'
@@ -228,12 +225,9 @@ class News(Schema):
         },
         'author_id': {
             'type': 'integer'
-        },
-        'image_id': {
-            'type': 'integer'
         }
     }
-    required = ['title', 'details', 'status', 'view_count']
+    required = ['title', 'details', 'priority']
 
 class NewsCategory(Schema):
     type = 'object'
