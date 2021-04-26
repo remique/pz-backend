@@ -19,6 +19,10 @@ Potem jako, że korzystamy już z `pipenv` to aby uruchomić aplikację wystarcz
 python run.py
 ```
 
+### Baza
+
+Domyślnie (dev) używamy `SQLite`, w produkcji jednak używamy `Postgres`. Jak zainstalować i obsługiwać sprawdźcie [DATABASE.md](DATABASE.md).
+
 ### Testy
 
 Do testów używamy `unittest`. Testy podzielone są na kilka plików.

@@ -5,17 +5,17 @@ class Config(object):
     CORS_HEADERS = 'Content-Type'
     SECRET_KEY = 'pz-backend-2020'
     JWT_SECRET_KEY = 'secret-key'
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
     SCHEDULER_API_ENABLED = False
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024
 
 
 class ProductionConfig(Config):
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
+    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:1234@localhost/test_database'
 
 
 class DevelopmentConfig(Config):
     DEBUG = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
 
 
 class TestingConfig(Config):
