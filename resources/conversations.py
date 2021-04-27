@@ -61,7 +61,9 @@ class ConversationsApi(Resource):
         """Return ALL the conversations for logged user"""
 
         # TODO: Use get_jwt() instead (needed for unittesting)
-        jwt_email = get_jwt_identity()
+        claims_jwt = get_jwt()
+        jwt_email = claims_jwt['email']
+
         current_user = User.query.filter_by(email=jwt_email).first()
 
         total_conversations = Conversation.query.filter(
@@ -162,7 +164,8 @@ class ConversationsApi(Resource):
     @jwt_required()
     def post(self):
         """Add a new conversation for current user"""
-        jwt_email = get_jwt_identity()
+        claims_jwt = get_jwt()
+        jwt_email = claims_jwt['email']
         current_user = User.query.filter_by(email=jwt_email).first()
 
         user_one = current_user.id

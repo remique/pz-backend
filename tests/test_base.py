@@ -9,6 +9,7 @@ from flask_jwt_extended import (
 )
 
 from database.db import db, init_db
+from database.models import User
 from resources.schemas import UserTokenSchema
 
 from app import create_app
@@ -41,8 +42,19 @@ class TestBase(unittest.TestCase):
             "roles": []
         }
 
+        claims_data = {
+            "id": 1,
+            "email": "testuser",
+            "institution_id": 1,
+            "firstname": "string",
+            "surname": "string",
+            "sex": 0,
+            "active": 0,
+            "roles": []
+        }
+
         # Add testuser claims to the token
-        testuser_claims = user_token_schema.dump(testuser)
+        testuser_claims = user_token_schema.dump(claims_data)
 
         # Create access token
         access_token = create_access_token(
@@ -52,6 +64,13 @@ class TestBase(unittest.TestCase):
         self.header = {
             'Authorization': 'Bearer {}'.format(access_token)
         }
+
+        # Post new user (TODO: IDK IF ITS OKAY)
+        curr_time = db.func.current_timestamp()
+        new_user = User(testuser['email'], testuser['password'], testuser['salt'], testuser['firstname'], testuser['surname'],
+                        testuser['institution_id'], testuser['sex'], testuser['active'], curr_time, curr_time)
+
+        db.session.add(new_user)
 
     def tearDown(self):
         db.session.remove()
