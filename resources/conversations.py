@@ -182,26 +182,26 @@ class ConversationsApi(Resource):
 
 
 class ConversationReplyApi(Resource):
-    @swagger.doc({
-        'tags': ['conversation_reply'],
-        'description': 'Returns ALL the conversations replies',
-        'responses': {
-            '200': {
-                'description': 'Successfully got all the conversations replies',
-            }
-        },
-        'security': [
-            {
-                'api_key': []
-            }
-        ]
-    })
-    @jwt_required()
-    def get(self):
-        """Return ALL the conversations replies"""
-        all_replies = ConversationReply.query.all()
-        result = conversations_replies_schema.dump(all_replies)
-        return jsonify(result)
+    # @swagger.doc({
+    #     'tags': ['conversation_reply'],
+    #     'description': 'Returns ALL the conversations replies',
+    #     'responses': {
+    #         '200': {
+    #             'description': 'Successfully got all the conversations replies',
+    #         }
+    #     },
+    #     'security': [
+    #         {
+    #             'api_key': []
+    #         }
+    #     ]
+    # })
+    # @jwt_required()
+    # def get(self):
+    #     """Return ALL the conversations replies"""
+    #     all_replies = ConversationReply.query.all()
+    #     result = conversations_replies_schema.dump(all_replies)
+    #     return jsonify(result)
 
     @swagger.doc({
         'tags': ['conversation_reply'],
@@ -267,6 +267,18 @@ class ConversationRepliesApi(Resource):
                 'type': 'integer',
                 'required': 'true'
             },
+            {
+                'name': 'page',
+                'in': 'query',
+                'type': 'integer',
+                'description': '*Optional*: Which page to return'
+            },
+            {
+                'name': 'per_page',
+                'in': 'query',
+                'type': 'integer',
+                'description': '*Optional*: How many replies to return per page'
+            },
         ],
         'responses': {
             '200': {
@@ -282,11 +294,53 @@ class ConversationRepliesApi(Resource):
     @jwt_required()
     def get(self, conv_id):
         """Return ALL the replies in given conversation"""
+
+        total_replies = ConversationReply.query.filter(
+            ConversationReply.conv_id == conv_id).count()
+
+        MIN_PER_PAGE = 5
+        MAX_PER_PAGE = 30
+
+        # Get query parameters
+        page = request.args.get('page')
+        per_page = request.args.get('per_page')
+
+        # If page is not provided, set to first page by default
+        if page is None or int(page) < 1:
+            page = 1
+
+        # Default pagination
+        if per_page is None:
+            per_page = 15
+
+        if int(per_page) < MIN_PER_PAGE:
+            per_page = MIN_PER_PAGE
+
+        if int(per_page) > MAX_PER_PAGE:
+            per_page = MAX_PER_PAGE
+
+        last_page = math.ceil(int(total_replies) / int(per_page))
+
+        if int(page) >= last_page:
+            page = int(last_page)
+
+        page_offset = (int(page) - 1) * int(per_page)
+
         conversation = Conversation.query.filter_by(id=conv_id).first()
         if conversation is None:
             return jsonify({'msg': 'Conversation does not exist'})
 
-        replies = ConversationReply.query.filter_by(
-            conv_id=conv_id).order_by(ConversationReply.reply_time.desc()).all()
+        replies_query = ConversationReply.query.filter_by(
+            conv_id=conv_id).order_by(ConversationReply.reply_time.desc()).offset(page_offset).limit(per_page).all()
 
-        return conversations_replies_schema.jsonify(replies)
+        replies_query_result = conversations_replies_schema.dump(replies_query)
+
+        result = {
+            "total": total_replies,
+            "per_page": int(per_page),
+            "current_page": int(page),
+            "last_page": last_page,
+            "data": replies_query_result
+        }
+
+        return jsonify(result)
