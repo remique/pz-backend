@@ -180,6 +180,14 @@ class ConversationsApi(Resource):
         if does_exist is not None:
             return jsonify({'msg': 'Conversation already exists'})
 
+        user_two_exists = User.query.filter_by(id=user_two).first()
+
+        if not user_two_exists:
+            return jsonify({'msg': 'User with given id does not exist'})
+
+        if user_one == user_two:
+            return jsonify({'msg': 'Could not make conversation with the same user'})
+
         new_conversation = Conversation(user_one, user_two)
 
         db.session.add(new_conversation)
@@ -215,7 +223,8 @@ class ConversationReplyApi(Resource):
     @jwt_required()
     def post(self):
         """Add a new conversation reply"""
-        jwt_email = get_jwt_identity()
+        claims_jwt = get_jwt()
+        jwt_email = claims_jwt['email']
         current_user = User.query.filter_by(email=jwt_email).first()
 
         reply = request.json['reply']

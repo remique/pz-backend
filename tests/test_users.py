@@ -96,3 +96,56 @@ class TestUsers(TestBase):
     def test_delete_user(self):
         response = self.app.delete('/user/1', headers=self.header)
         self.assertEqual(200, response.status_code)
+
+    def test_change_password_not_matching(self):
+        pw_data = {
+            "password": "1234",
+            "repeat_password": "12345"
+        }
+
+        result = self.app.post(
+            '/change_password',
+            data=json.dumps(pw_data),
+            content_type='application/json',
+            headers=self.header
+        )
+        data = json.loads(result.get_data(as_text=True))
+
+        self.assertEqual(data['msg'], "Passwords do not match!")
+        self.assertEqual(200, result.status_code)
+
+    def test_change_password_same_as_old(self):
+        pw_data = {
+            "password": "12345",
+            "repeat_password": "12345"
+        }
+
+        result = self.app.post(
+            '/change_password',
+            data=json.dumps(pw_data),
+            content_type='application/json',
+            headers=self.header
+        )
+        data = json.loads(result.get_data(as_text=True))
+
+        self.assertEqual(
+            data['msg'], "Password must be different from the current one")
+        self.assertEqual(200, result.status_code)
+
+    def test_change_password_successfully(self):
+        pw_data = {
+            "password": "new_password",
+            "repeat_password": "new_password"
+        }
+
+        result = self.app.post(
+            '/change_password',
+            data=json.dumps(pw_data),
+            content_type='application/json',
+            headers=self.header
+        )
+        data = json.loads(result.get_data(as_text=True))
+
+        self.assertEqual(
+            data['msg'], "Password changed successfully")
+        self.assertEqual(200, result.status_code)
