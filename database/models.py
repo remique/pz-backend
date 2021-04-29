@@ -16,6 +16,12 @@ user_groups = db.Table('user_groups',
                        db.Column('user_id', db.Integer, db.ForeignKey(
                            'user.id'), primary_key=True))
 
+image_has_album_image = db.Table('image_has_album_image',
+                       db.Column('image_id', db.Integer, db.ForeignKey(
+                           'image.id'), primary_key=True),
+                       db.Column('album_id', db.Integer, db.ForeignKey(
+                           'album.id'), primary_key=True))
+
 
 class Role(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -195,6 +201,8 @@ class Image(db.Model):
                            default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, nullable=False,
                            default=db.func.current_timestamp())
+    #albums = db.relationship('Album', secondary=image_has_album_image,
+    #                        backref=db.backref('images', lazy='dynamic'))
 
     def __init__(self, url, created_at, updated_at):
         self.url = url
@@ -241,3 +249,47 @@ class News(db.Model):
         self.category_id = category_id
         self.institution_id = institution_id
         self.author_id = author_id
+
+
+class Album(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(45), nullable=True)
+    date = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False,
+                           default=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, nullable=False,
+                           default=db.func.current_timestamp())
+    description = db.Column(db.String(128), nullable=True)
+    institution_id = db.Column(db.Integer, db.ForeignKey('institution.id'), nullable=False)
+    images = db.relationship('Image', secondary=image_has_album_image,
+                            backref=db.backref('albums', lazy='dynamic'))
+
+    def __init__(self, name, date, created_at, updated_at, description, institution_id):
+        self.name = name
+        self.date = date
+        self.created_at = created_at
+        self.updated_at = updated_at
+        self.description = description
+        self.institution_id = institution_id
+
+
+class Attendance(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.DateTime, nullable=False)
+    present = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    def __init__(self, date, present, user_id):
+        self.date = date
+        self.present = present
+        self.user_id = user_id
+
+
+#class PickUpDelay(db.Model)
+#    id = db.Column(db.Integer, primary_key=True)
+#    is_delayed = db.Column(db.Integer, nullable=False)
+#    delay = db.Column(db.Time, nullable=False)
+
+#    def __init__(self, is_delayed, delay):
+#        self.is_delayed = is_delayed
+#        self.delay = delay

@@ -3,7 +3,8 @@ from database.db import db
 from database.models import (
     User, Institution, Role, Group,
     Activity, Dish, DishMenu, Conversation,
-    ConversationReply, Image, News, NewsCategory
+    ConversationReply, Image, News, NewsCategory,
+    Attendance
 )
 from flask import Flask, render_template, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
@@ -159,3 +160,17 @@ class UserTokenSchema(ma.Schema):
         fields = ("id", "email", "institution_id", "firstname", "surname",
                   "sex", "active", "roles")
     roles = ma.Nested('RoleSchema', many=True)
+
+
+class AlbumSchema(ma.Schema):
+    class Meta:
+        model = NewsCategory
+        ordered = True
+        fields = ("id", "name", "date", "created_at", "updated_at", "description", "institution_id")
+
+
+class AttendanceSchema(ma.Schema):
+    class Meta:
+        model = Attendance
+        ordered = True
+        fields = ("id", "date", "present", "user_id")

@@ -4,12 +4,13 @@ from .schemas import NewsSchema, NewsCategorySchema
 from database.db import db
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
-    get_jwt_identity
+    get_jwt_identity, get_jwt
 )
 from flask_restful_swagger_2 import Api, swagger, Resource, Schema
 from .swagger_models import News as NewsSwaggerModel
 from .swagger_models import NewsCategory as NewsCategorySwaggerModel
 from datetime import datetime
+import math
 
 news_schema = NewsSchema()
 newsM_schema = NewsSchema(many=True)
@@ -24,12 +25,69 @@ class NewsMApi(Resource):
             '200': {
                 'description': 'Successfully got all the news',
             }
-        }
+        },
+        'parameters': [
+            {
+                'name': 'page',
+                'in': 'query',
+                'type': 'integer',
+                'description': '*Optional*: Which page to return'
+            },
+            {
+                'name': 'per_page',
+                'in': 'query',
+                'type': 'integer',
+                'description': '*Optional*: How many users to return per page'
+            },
+        ],
+        'security': [
+            {
+                'api_key': []
+            }
+        ]
     })
+    @jwt_required()
     def get(self):
         """Return ALL the news"""
-        all_news = News.query.all()
-        result = newsM_schema.dump(all_news)
+
+        MIN_PER_PAGE = 5
+        MAX_PER_PAGE = 30
+
+        claims = get_jwt()
+        user_institution_id = claims['institution_id']
+
+        page = request.args.get('page')
+        per_page = request.args.get('per_page')
+
+        if page is None or int(page) < 1:
+            page = 1
+
+        if per_page is None:
+            per_page = 15
+
+        if int(per_page) < MIN_PER_PAGE:
+            per_page = MIN_PER_PAGE
+
+        if int(per_page) > MAX_PER_PAGE:
+            per_page = MAX_PER_PAGE
+
+        page_offset = (int(page) - 1) * int(per_page)
+
+        news_total = News.query.filter(
+            News.institution_id == user_institution_id).count()
+
+        news_query = User.query.filter(User.institution_id == user_institution_id).offset(
+            page_offset).limit(per_page).all()
+        query_result = newsM_schema.dump(news_query)
+
+        result = {
+            "total": news_total,
+            "per_page": int(per_page),
+            "current_page": int(page),
+            "last_page": math.ceil(int(news_total) / int(per_page)),
+            "data": query_result
+        }
+
         return jsonify(result)
 
     @swagger.doc({
@@ -179,7 +237,7 @@ class NewsApi(Resource):
     })
     def delete(self, id):
         """Delete news"""
-        news = db.session.query(news).filter(News.id == id).first()
+        news = db.session.query(News).filter(News.id == id).first()
         if not news:
             return jsonify({'msg': 'No news found'})
         db.session.delete(news)

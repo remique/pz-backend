@@ -13,6 +13,8 @@ from .conversations import (
 )
 from .images import ImageApi, ImagesApi
 from .news import NewsApi, NewsMApi, NewsCategoryApi, NewsCategoriesApi
+from .albums import AlbumApi, AlbumsApi, AlbumImageApi, AlbumImagesApi
+from .attendance import AttendanceMApi, AttendanceApi
 
 
 def initialize_routes(api):
@@ -57,3 +59,12 @@ def initialize_routes(api):
     api.add_resource(NewsApi, '/news/<id>')
     api.add_resource(NewsCategoryApi, '/newscategory/<id>')
     api.add_resource(NewsCategoriesApi, '/newscategory')
+
+    api.add_resource(AlbumsApi, '/album')
+    api.add_resource(AlbumApi, '/album/<id>')
+    api.add_resource(AlbumImagesApi, '/albumimage/<albumid>')
+    api.add_resource(AlbumImageApi, '/albumimage')
+
+    api.add_resource(AttendanceMApi, '/attendance')
+    api.add_resource(AttendanceApi, '/attendance/<id>')
+
