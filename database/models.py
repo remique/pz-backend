@@ -210,19 +210,6 @@ class Image(db.Model):
         self.updated_at = updated_at
 
 
-class NewsCategory(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(45), nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False,
-                           default=db.func.current_timestamp())
-    updated_at = db.Column(db.DateTime, nullable=False,
-                           default=db.func.current_timestamp())
-
-    def __init__(self, name, created_at, updated_at):
-        self.name = name
-        self.created_at = created_at
-        self.updated_at = updated_at
-
 
 class News(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -234,19 +221,16 @@ class News(db.Model):
                            default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, nullable=False,
                            default=db.func.current_timestamp())
-    category_id = db.Column(db.Integer, db.ForeignKey(
-        'news_category.id'), nullable=True)
     institution_id = db.Column(
         db.Integer, db.ForeignKey('institution.id'), nullable=True)
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
-    def __init__(self, title, details, priority, created_at, updated_at, category_id, institution_id, author_id):
+    def __init__(self, title, details, priority, created_at, updated_at, institution_id, author_id):
         self.title = title
         self.details = details
         self.priority = priority
         self.created_at = created_at
         self.updated_at = updated_at
-        self.category_id = category_id
         self.institution_id = institution_id
         self.author_id = author_id
 

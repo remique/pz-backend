@@ -12,7 +12,7 @@ from .conversations import (
     UserSearchApi
 )
 from .images import ImageApi, ImagesApi
-from .news import NewsApi, NewsMApi, NewsCategoryApi, NewsCategoriesApi
+from .news import NewsApi, NewsMApi
 from .albums import AlbumApi, AlbumsApi, AlbumImageApi, AlbumImagesApi
 from .attendance import AttendanceMApi, AttendanceApi
 
@@ -57,8 +57,6 @@ def initialize_routes(api):
 
     api.add_resource(NewsMApi, '/news')
     api.add_resource(NewsApi, '/news/<id>')
-    api.add_resource(NewsCategoryApi, '/newscategory/<id>')
-    api.add_resource(NewsCategoriesApi, '/newscategory')
 
     api.add_resource(AlbumsApi, '/album')
     api.add_resource(AlbumApi, '/album/<id>')
@@ -67,4 +65,3 @@ def initialize_routes(api):
 
     api.add_resource(AttendanceMApi, '/attendance')
     api.add_resource(AttendanceApi, '/attendance/<id>')
-

@@ -3,8 +3,8 @@ from database.db import db
 from database.models import (
     User, Institution, Role, Group,
     Activity, Dish, DishMenu, Conversation,
-    ConversationReply, Image, News, NewsCategory,
-    Attendance
+    ConversationReply, Image, News,
+    Attendance, Album
 )
 from flask import Flask, render_template, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
@@ -142,15 +142,8 @@ class NewsSchema(ma.Schema):
     class Meta:
         model = News
         ordered = True
-        fields = ("title", "details", "priority", "created_at",
-                  "updated_at", "category_id", "institution_id", "author_id")
-
-
-class NewsCategorySchema(ma.Schema):
-    class Meta:
-        model = NewsCategory
-        ordered = True
-        fields = ("id", "name", "created_at", "updated_at")
+        fields = ("id", "title", "details", "priority", "created_at",
+                  "updated_at", "institution_id", "author_id")
 
 
 class UserTokenSchema(ma.Schema):
@@ -164,9 +157,10 @@ class UserTokenSchema(ma.Schema):
 
 class AlbumSchema(ma.Schema):
     class Meta:
-        model = NewsCategory
+        model = Album
         ordered = True
-        fields = ("id", "name", "date", "created_at", "updated_at", "description", "institution_id")
+        fields = ("id", "name", "date", "created_at",
+                  "updated_at", "description", "institution_id")
 
 
 class AttendanceSchema(ma.Schema):
@@ -174,3 +168,4 @@ class AttendanceSchema(ma.Schema):
         model = Attendance
         ordered = True
         fields = ("id", "date", "present", "user_id")
+

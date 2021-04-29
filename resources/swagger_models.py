@@ -215,29 +215,9 @@ class News(Schema):
         },
         'priority': {
             'type': 'boolean'
-        },
-        'category_id': {
-            'type': 'integer'
-        },
-        'institution_id': {
-            'type': 'integer'
-        },
-        'author_id': {
-            'type': 'integer'
         }
     }
     required = ['title', 'details', 'priority']
-
-
-class NewsCategory(Schema):
-    type = 'object'
-    description = 'Must provide these when creating news category'
-    properties = {
-        'name': {
-            'type': 'string'
-        }
-    }
-    required = ['name']
 
 
 class Album(Schema):
