@@ -164,6 +164,10 @@ class Conversation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_one = db.Column(db.Integer, db.ForeignKey('user.id'))
     user_two = db.Column(db.Integer, db.ForeignKey('user.id'))
+    created_at = db.Column(db.DateTime, nullable=False,
+                           default=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, nullable=False,
+                           default=db.func.current_timestamp())
 
     conversation_replies = db.relationship('ConversationReply',
                                            backref='conversation', lazy=True)
@@ -171,9 +175,11 @@ class Conversation(db.Model):
     user_two_obj = db.relationship(
         'User', backref='conversationes2', foreign_keys=user_two, lazy=True)
 
-    def __init__(self, user_one, user_two):
+    def __init__(self, user_one, user_two, created_at, updated_at):
         self.user_one = user_one
         self.user_two = user_two
+        self.created_at = created_at
+        self.updated_at = updated_at
 
 
 class ConversationReply(db.Model):

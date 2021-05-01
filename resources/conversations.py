@@ -98,13 +98,9 @@ class ConversationsApi(Resource):
 
         page_offset = (int(page) - 1) * int(per_page)
 
-        conversations = Conversation.query.filter(
-            or_(Conversation.user_one == current_user.id,
-                Conversation.user_two == current_user.id))
-
         conversations_query = Conversation.query.filter(
             or_(Conversation.user_one == current_user.id,
-                Conversation.user_two == current_user.id)).offset(page_offset).limit(per_page).all()
+                Conversation.user_two == current_user.id)).order_by(Conversation.updated_at.desc()).offset(page_offset).limit(per_page).all()
 
         # Copying query to separate list, so we won't delete actual records
         conversations_copy = []
@@ -170,6 +166,8 @@ class ConversationsApi(Resource):
 
         user_one = current_user.id
         user_two = request.json['user_two']
+        created_at = db.func.current_timestamp()
+        updated_at = db.func.current_timestamp()
 
         does_exist = Conversation.query.filter(
             or_(
@@ -188,7 +186,8 @@ class ConversationsApi(Resource):
         if user_one == user_two:
             return jsonify({'msg': 'Could not make conversation with the same user'})
 
-        new_conversation = Conversation(user_one, user_two)
+        new_conversation = Conversation(
+            user_one, user_two, created_at, updated_at)
 
         db.session.add(new_conversation)
         db.session.commit()
@@ -244,6 +243,9 @@ class ConversationReplyApi(Resource):
 
         new_conv_reply = ConversationReply(
             reply, reply_time, reply_user_id, conv_id)
+
+        # Update conversation
+        conv_exists.updated_at = db.func.current_timestamp()
 
         db.session.add(new_conv_reply)
         db.session.commit()
