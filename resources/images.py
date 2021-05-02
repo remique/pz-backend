@@ -28,7 +28,7 @@ def allowed_file(filename):
 class ImagesApi(Resource):
     @swagger.doc({
         'tags': ['image'],
-        'description': 'Returns ALL the images',
+        'description': 'Returns ALL the images that have not **album_id** assigned',
         'responses': {
             '200': {
                 'description': 'Successfully got all the images',
@@ -56,12 +56,14 @@ class ImagesApi(Resource):
     })
     @jwt_required()
     def get(self):
-        """Return ALL the images"""
+        """Return ALL the images without an album"""
         claims = get_jwt()
         user_institution_id = claims['institution_id']
 
-        images_total = Image.query.filter(
-            Image.institution_id == user_institution_id).count()
+        images_total = Image.query\
+            .filter(Image.institution_id == user_institution_id)\
+            .filter(Image.album_id == None)\
+            .count()
 
         MIN_PER_PAGE = 5
         MAX_PER_PAGE = 30
@@ -88,8 +90,12 @@ class ImagesApi(Resource):
 
         page_offset = (int(page) - 1) * int(per_page)
 
-        images_query = Image.query.filter(Image.institution_id == user_institution_id).order_by(
-            Image.id.desc()).offset(page_offset).limit(per_page).all()
+        images_query = Image.query\
+            .filter(Image.institution_id == user_institution_id)\
+            .filter(Image.album_id == None)\
+            .order_by(Image.id.desc())\
+            .offset(page_offset)\
+            .limit(per_page).all()
         query_result = images_schema.dump(images_query)
 
         result = {

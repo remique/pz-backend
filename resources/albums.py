@@ -9,6 +9,7 @@ from flask_jwt_extended import (
 from flask_restful_swagger_2 import Api, swagger, Resource, Schema
 from .swagger_models import Album as AlbumSwaggerModel
 from .swagger_models import AlbumImage as AlbumImageSwaggerModel
+from .swagger_models import DeleteAlbumImage as DeleteAlbumImageSwaggerModel
 from datetime import datetime
 import math
 
@@ -78,10 +79,10 @@ class AlbumsApi(Resource):
             Album.institution_id == user_institution_id).count()
 
         albums_query = Album.query\
-                .filter(Album.institution_id == user_institution_id)\
-                .order_by(Album.id.desc())\
-                .offset(page_offset)\
-                .limit(per_page).all()
+            .filter(Album.institution_id == user_institution_id)\
+            .order_by(Album.id.desc())\
+            .offset(page_offset)\
+            .limit(per_page).all()
         query_result = albums_schema.dump(albums_query)
 
         result = {
@@ -364,8 +365,14 @@ class AlbumImageApi(Resource):
             '200': {
                 'description': 'Successfully added image to an album',
             }
-        }
+        },
+        'security': [
+            {
+                'api_key': []
+            }
+        ]
     })
+    @jwt_required()
     def post(self):
         """Add image to an album"""
         i_id = request.json['image_id']
@@ -374,6 +381,10 @@ class AlbumImageApi(Resource):
         image = Image.query.get(i_id)
         if image is None:
             return jsonify({'msg': 'Image doesnt exist'})
+
+        if image.album_id is not None:
+            return jsonify({'msg': 'This image is already in an album'})
+
         album = Album.query.get(a_id)
         if album is None:
             return jsonify({'msg': 'Album doesnt exist'})
@@ -390,6 +401,8 @@ class AlbumImageApi(Resource):
 
         return jsonify({'msg': 'Successfully added image to an album'})
 
+
+class DeleteAlbumImageApi(Resource):
     @swagger.doc({
         'tags': ['albumimage'],
         'description': 'Removes image from album',
@@ -397,32 +410,49 @@ class AlbumImageApi(Resource):
             {
                 'name': 'Body',
                 'in': 'body',
-                'schema': AlbumImageSwaggerModel,
+                'schema': DeleteAlbumImageSwaggerModel,
                 'type': 'object',
                 'required': 'true'
             },
+            {
+                'name': 'image_id',
+                'description': 'Image identifier',
+                'in': 'path',
+                'type': 'integer',
+            }
         ],
         'responses': {
             '200': {
                 'description': 'Successfully removed image from album',
             }
-        }
+        },
+        'security': [
+            {
+                'api_key': []
+            }
+        ]
     })
-    def delete(self):
+    @jwt_required()
+    def delete(self, image_id):
         """Delete image from album"""
-        i_id = request.json['image_id']
+        # i_id = request.json['image_id']
+        i_id = image_id
         a_id = request.json['album_id']
 
         image = Image.query.get(i_id)
         if image is None:
             return jsonify({'msg': 'Image doesnt exist'})
+
         album = Album.query.get(a_id)
         if album is None:
             return jsonify({'msg': 'Album doesnt exist'})
 
-        if(image in album.images):
+        if image in album.images:
             result = album.images.remove(image)
+
             album.img_count = album.img_count - 1
+            image.album_id = None
+
             db.session.commit()
             return jsonify({'msg': 'Album image removed'})
         else:
