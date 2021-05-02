@@ -77,8 +77,11 @@ class AlbumsApi(Resource):
         albums_total = Album.query.filter(
             Album.institution_id == user_institution_id).count()
 
-        albums_query = Album.query.filter(Album.institution_id == user_institution_id).offset(
-            page_offset).limit(per_page).all()
+        albums_query = Album.query\
+                .filter(Album.institution_id == user_institution_id)\
+                .order_by(Album.id.desc())\
+                .offset(page_offset)\
+                .limit(per_page).all()
         query_result = albums_schema.dump(albums_query)
 
         result = {

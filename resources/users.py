@@ -91,8 +91,11 @@ class UsersApi(Resource):
         users_total = User.query.filter(
             User.institution_id == user_institution_id).count()
 
-        users_query = User.query.filter(User.institution_id == user_institution_id).offset(
-            page_offset).limit(per_page).all()
+        users_query = User.query\
+                .filter(User.institution_id == user_institution_id)\
+                .order_by(User.id.desc())\
+                .offset(page_offset)\
+                .limit(per_page).all()
         query_result = users_schema.dump(users_query)
 
         result = {

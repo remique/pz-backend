@@ -82,8 +82,11 @@ class GroupsApi(Resource):
 
         page_offset = (int(page) - 1) * int(per_page)
 
-        institution_groups = Group.query.filter(
-            Group.institution_id == current_user_institution_id).offset(page_offset).limit(per_page).all()
+        institution_groups = Group.query\
+            .filter(Group.institution_id == current_user_institution_id)\
+            .order_by(Group.id.desc())\
+            .offset(page_offset)\
+            .limit(per_page).all()
 
         query_result = groups_schema.dump(institution_groups)
 
