@@ -1,6 +1,6 @@
 from flask import Response, request, jsonify, make_response, json
 from database.models import Group, User, user_groups
-from .schemas import GroupSchema
+from .schemas import GroupSchema, UserGetSchema
 from database.db import db
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
@@ -14,6 +14,8 @@ import math
 
 group_schema = GroupSchema()
 groups_schema = GroupSchema(many=True)
+
+users_schema = UserGetSchema(many=True)
 
 
 class GroupsApi(Resource):
@@ -346,3 +348,84 @@ class UserGroupApi(Resource):
             return jsonify({'msg': 'Group removed'})
         else:
             return jsonify({'msg': 'User doesnt have selected group'})
+
+
+class UserGroupFilterApi(Resource):
+    @swagger.doc({
+        'tags': ['usergroup'],
+        'description': 'Get all the users in a group',
+        'parameters': [
+            {
+                'name': 'group_id',
+                'description': 'Group identifier',
+                'in': 'path',
+                'type': 'integer'
+            },
+            {
+                'name': 'page',
+                'in': 'query',
+                'type': 'integer',
+                'description': '*Optional*: Which page to return'
+            },
+            {
+                'name': 'per_page',
+                'in': 'query',
+                'type': 'integer',
+                'description': '*Optional*: How many conversations to return per page'
+            },
+        ],
+        'responses': {
+            '200': {
+                'description': 'Successfully fetch all the users',
+            }
+        }
+    })
+    def get(self, group_id):
+        """Get all the users in a group"""
+
+        total_users = User.query.filter(User.groups.any(id=group_id)).count()
+
+        MIN_PER_PAGE = 5
+        MAX_PER_PAGE = 30
+
+        # Get query parameters
+        page = request.args.get('page')
+        per_page = request.args.get('per_page')
+
+        # If page is not provided, set to first page by default
+        if page is None or int(page) < 1:
+            page = 1
+
+        # Default pagination
+        if per_page is None:
+            per_page = 15
+
+        if int(per_page) < MIN_PER_PAGE:
+            per_page = MIN_PER_PAGE
+
+        if int(per_page) > MAX_PER_PAGE:
+            per_page = MAX_PER_PAGE
+
+        last_page = math.ceil(int(total_users) / int(per_page))
+
+        if int(page) >= last_page:
+            page = int(last_page)
+
+        page_offset = (int(page) - 1) * int(per_page)
+
+        group_users = User.query\
+            .filter(User.groups.any(id=group_id))\
+            .offset(page_offset)\
+            .limit(per_page).all()
+
+        groups = users_schema.dump(group_users)
+
+        result = {
+            "total": total_users,
+            "per_page": int(per_page),
+            "current_page": int(page),
+            "last_page": last_page,
+            "data": groups
+        }
+
+        return jsonify(result)
