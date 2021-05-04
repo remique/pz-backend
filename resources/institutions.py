@@ -62,6 +62,9 @@ class InstitutionsApi(Resource):
         new_institution = Institution(name, city, address, contact_number)
         db.session.add(new_institution)
 
+        new_institution_query = Institution.query\
+            .filter(Institution.name == name).first()
+
         # Create admin user for new institution
         admin_email = request.json['admin_email']
         admin_password = request.json['admin_password']
@@ -69,7 +72,7 @@ class InstitutionsApi(Resource):
         admin_surname = request.json['admin_surname']
         admin_sex = request.json['admin_sex']
         active = 1
-        admin_institution_id = new_institution.id
+        admin_institution_id = new_institution_query.id
         created_at = db.func.current_timestamp()
         updated_at = db.func.current_timestamp()
 

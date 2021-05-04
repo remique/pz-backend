@@ -17,10 +17,22 @@ activities_schema = ActivitySchema(many=True)
 class ActivitiesApi(Resource):
     @swagger.doc({
         'tags': ['activity'],
-        'description': 'Returns ALL the activities',
+        'description': '''Return all the activities. \
+                GET endpoint without any params returns all activities \
+                existing in the application and is not really useful. \
+                \n Parameters: \n \n \
+                \n * *(Optional)* `only_me`: returns an activity for currently \
+                logged in user. Note that it may show nothing if user is an \
+                admin and should only be used for accounts with a role of *Child* \
+                (as they are created automatically for them) \n \
+                \n * *(Optional)* `only_institution`: returns all activities in \
+                an institution for a current user''',
         'responses': {
             '200': {
                 'description': 'Successfully got all the activities',
+            },
+            '401': {
+                'description': 'Unauthorized request',
             }
         },
         'parameters': [
@@ -28,7 +40,11 @@ class ActivitiesApi(Resource):
                 'name': 'only_me',
                 'in': 'query',
                 'type': 'boolean',
-                'description': '*Optional*: Filter by logged in user only'
+            },
+            {
+                'name': 'only_institution',
+                'in': 'query',
+                'type': 'boolean',
             }
         ],
         'security': [
@@ -42,8 +58,27 @@ class ActivitiesApi(Resource):
         """Return ALL the activities"""
         claims = get_jwt()
         current_user_id = claims['id']
+        current_user_institution_id = claims['institution_id']
 
         only_me_query = request.args.get('only_me')
+        only_institution_query = request.args.get('only_institution')
+
+        if only_institution_query == 'true' and only_me_query != 'true':
+            activities = Activity.query.all()
+            act_copy = []
+
+            for activity in activities:
+                user_activity = User.query\
+                    .filter(User.id == activity.user_id)\
+                    .first()
+
+                print(user_activity.id, user_activity.institution_id)
+
+                if user_activity.institution_id == current_user_institution_id:
+                    act_copy.append(activity)
+
+            result = activities_schema.dump(act_copy)
+            return jsonify(result)
 
         if only_me_query == 'true':
             user_activities = Activity.query\
@@ -58,18 +93,13 @@ class ActivitiesApi(Resource):
 
 class ActivityApi(Resource):
 
-    # GET single activity with given id
-    def get(self, id):
-        single_activity = Activity.query.get(id)
-
-        if not single_activity:
-            return jsonify({'msg': 'No activity found'})
-
-        return activity_schema.jsonify(single_activity)
-
     @swagger.doc({
         'tags': ['activity'],
-        'description': 'Updates an activity',
+        'description': '''Updates an activity. Please do note, that \
+                it requires user updating an activity to be in the same \
+                institution as the user being updated. \n \
+                Params: \n \
+                \n * (Required) `id`: User identifier''',
         'parameters': [
             {
                 'name': 'Body',
@@ -81,19 +111,37 @@ class ActivityApi(Resource):
             {
                 'name': 'id',
                 'in': 'path',
-                'description': 'User identifier',
                 'type': 'integer'
             }
         ],
         'responses': {
             '200': {
                 'description': 'Successfully updated an activity',
+            },
+            '401': {
+                'description': 'Unauthorized request',
             }
-        }
+        },
+        'security': [
+            {
+                'api_key': []
+            }
+        ]
     })
+    @jwt_required()
     def put(self, id):
-        """Update activity"""
+        """Update an activity by User ID"""
+        claims = get_jwt()
+        user_institution_id = claims['institution_id']
+
         activity = Activity.query.get(id)
+
+        activity_user = User.query\
+            .filter(User.id == activity.user_id).first()
+
+        if activity_user.institution_id != user_institution_id:
+            return jsonify({'msg': 'User being updated does not belong to \
+                    the institution of currently logged in User'})
 
         sleep = request.json['sleep']
         food_scale = request.json['food_scale']
