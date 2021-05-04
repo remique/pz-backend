@@ -72,8 +72,6 @@ class ActivitiesApi(Resource):
                     .filter(User.id == activity.user_id)\
                     .first()
 
-                print(user_activity.id, user_activity.institution_id)
-
                 if user_activity.institution_id == current_user_institution_id:
                     act_copy.append(activity)
 
@@ -134,14 +132,17 @@ class ActivityApi(Resource):
         claims = get_jwt()
         user_institution_id = claims['institution_id']
 
-        activity = Activity.query.get(id)
+        activity = Activity.query\
+            .filter(Activity.user_id == id).first()
+
+        if activity is None:
+            return jsonify({'msg': 'No activity for this user'})
 
         activity_user = User.query\
-            .filter(User.id == activity.user_id).first()
+            .filter(User.id == id).first()
 
         if activity_user.institution_id != user_institution_id:
-            return jsonify({'msg': 'User being updated does not belong to \
-                    the institution of currently logged in User'})
+            return jsonify({'msg': 'User being updated does not belong to the instution of currently logged in User'})
 
         sleep = request.json['sleep']
         food_scale = request.json['food_scale']
