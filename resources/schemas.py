@@ -32,6 +32,13 @@ class UserGetSchema(ma.Schema):
     roles = ma.Nested('RoleSchema', many=True)
 
 
+class UserHomeSchema(ma.Schema):
+    class Meta:
+        model = User
+        ordered = True
+        fields = ("id", "firstname", "surname")
+
+
 class UserWithGroupsSchema(ma.Schema):
     class Meta:
         model = User

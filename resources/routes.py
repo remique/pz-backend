@@ -18,9 +18,12 @@ from .news import NewsApi, NewsMApi
 from .albums import (AlbumApi, AlbumsApi, AlbumImageApi,
                      AlbumImagesApi, DeleteAlbumImageApi)
 from .attendance import AttendanceMApi, AttendanceApi
+from .home import HomeStatsApi
 
 
 def initialize_routes(api):
+    api.add_resource(HomeStatsApi, '/home')
+
     api.add_resource(UsersApi, '/user')
     api.add_resource(PasswordChangeApi, '/change_password')
     api.add_resource(UserApi, '/user/<id>')
@@ -71,4 +74,3 @@ def initialize_routes(api):
 
     api.add_resource(AttendanceMApi, '/attendance')
     api.add_resource(AttendanceApi, '/attendance/<id>')
-
