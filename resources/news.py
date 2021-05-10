@@ -133,6 +133,9 @@ class NewsMApi(Resource):
         'responses': {
             '200': {
                 'description': 'Successfully added new news',
+            },
+            '401': {
+                'description': 'Unauthorized request',
             }
         },
         'security': [
@@ -177,7 +180,10 @@ class NewsMApi(Resource):
 class NewsApi(Resource):
     @swagger.doc({
         'tags': ['news'],
-        'description': 'Updates an news',
+        'description': '''An endpoint used to change given news. \n \
+                Providing an **id** in path is required. Also please \
+                note that you can only change news in an institution \
+                that logged user belongs to.''',
         'parameters': [
             {
                 'name': 'Body',
@@ -197,14 +203,26 @@ class NewsApi(Resource):
             '200': {
                 'description': 'Successfully updated a news',
             }
-        }
+        },
+        'security': [
+            {
+                'api_key': []
+            }
+        ]
     })
+    @jwt_required()
     def put(self, id):
-        """Update news"""
+        """Update news by its id"""
+        claims = get_jwt()
+        user_institution_id = claims['institution_id']
+
         news = News.query.get(id)
 
         if not news:
             return jsonify({'msg': 'No news found'})
+
+        if news.institution_id != user_institution_id:
+            return jsonify({'msg': 'News being updated does not belong to the institution of currently logged in User'})
 
         title = request.json['title']
         details = request.json['details']
@@ -221,7 +239,10 @@ class NewsApi(Resource):
 
     @swagger.doc({
         'tags': ['news'],
-        'description': 'Deletes a news',
+        'description': '''An endpoint providing ability to delete news by \
+                their IDs (provided in **path**). Also please note that you \
+                can only delete news in an institution that logged user \
+                belongs to.''',
         'parameters': [
             {
                 'name': 'id',
@@ -236,14 +257,31 @@ class NewsApi(Resource):
         'responses': {
             '200': {
                 'description': 'Successfully deleted news',
+            },
+            '401': {
+                'description': 'Unauthorized request',
             }
-        }
+        },
+        'security': [
+            {
+                'api_key': []
+            }
+        ]
     })
+    @jwt_required()
     def delete(self, id):
-        """Delete news"""
+        """Delete news by its id"""
+        claims = get_jwt()
+        user_institution_id = claims['institution_id']
+
         news = db.session.query(News).filter(News.id == id).first()
+
         if not news:
             return jsonify({'msg': 'No news found'})
+
+        if news.institution_id != user_institution_id:
+            return jsonify({'msg': 'News being deleted does not belong to the institution of currently logged in User'})
+
         db.session.delete(news)
         db.session.commit()
 
