@@ -7,6 +7,7 @@ class Config(object):
     JWT_SECRET_KEY = 'secret-key'
     SCHEDULER_API_ENABLED = False
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
 class ProductionConfig(Config):

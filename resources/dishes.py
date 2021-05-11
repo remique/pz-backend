@@ -21,7 +21,8 @@ dishMenus_schema = DishMenuSchema(many=True)
 class DishesApi(Resource):
     @swagger.doc({
         'tags': ['dish'],
-        'description': 'Returns ALL the dishes',
+        'description': '''An endpoint returning all the dishes within an \
+                institution that current user belongs to.''',
         'responses': {
             '200': {
                 'description': 'Successfully got all the dishes',
@@ -39,13 +40,19 @@ class DishesApi(Resource):
         current_user_jwt = get_jwt()
         current_user_institution_id = current_user_jwt['institution_id']
 
-        all_dishes = Dish.query.filter(Dish.institution_id == current_user_institution_id).all()
+        all_dishes = Dish.query\
+            .filter(Dish.institution_id == current_user_institution_id)\
+            .all()
+
         result = dishes_schema.dump(all_dishes)
         return jsonify(result)
 
     @swagger.doc({
         'tags': ['dish'],
-        'description': 'Adds a new dish',
+        'description': '''An endpoint allowing to add a dish to the institution \
+                that current user belongs to. \n Parameters: \
+                \n * (Required) `body`: JSON object with specific inputs \
+                provided in a model below.''',
         'parameters': [
             {
                 'name': 'Body',
@@ -78,6 +85,12 @@ class DishesApi(Resource):
         institution_id = user_institution_id
         is_alternative = request.json['is_alternative']
 
+        # Check if the same dish already exists
+        does_exist = Dish.query.filter(Dish.name == name).first()
+
+        if does_exist is not None:
+            return jsonify({'msg': 'Dish with this name already exists'})
+
         new_dish = Dish(name, description, type_str,
                         institution_id, is_alternative)
 
@@ -88,19 +101,12 @@ class DishesApi(Resource):
 
 
 class DishApi(Resource):
-
-    # GET single dish with given id
-    def get(self, id):
-        single_dish = Dish.query.get(id)
-
-        if not single_dish:
-            return jsonify({'msg': 'No dish found'})
-
-        return dish_schema.jsonify(single_dish)
-
     @swagger.doc({
         'tags': ['dish'],
-        'description': 'Updates an dish',
+        'description': '''An endpoint allowing to update dish. \n Parameters: \
+                \n * (Required) `id`: Dish identifier specified in **path** \
+                \n * (Required) `body`: JSON object with specific inputs \
+                provided in a model below.''',
         'parameters': [
             {
                 'name': 'Body',
@@ -122,21 +128,24 @@ class DishApi(Resource):
             }
         }
     })
+    @jwt_required()
     def put(self, id):
         """Update dish"""
+        claims = get_jwt()
+        user_institution_id = claims['institution_id']
+
         dish = Dish.query.get(id)
 
         if not dish:
             return jsonify({'msg': 'No dish found'})
 
+        if dish.institution_id != user_institution_id:
+            return jsonify({'msg': 'This dish does not belong to current institution and therefore cannot update it'})
+
         name = request.json['name']
         description = request.json['description']
         type_str = request.json['type']
         is_alternative = request.json['is_alternative']
-
-        institution = Institution.query.get(institution_id)
-        if not institution:
-            return jsonify({'msg': 'Institution does not exist'})
 
         dish.name = name
         dish.description = description
@@ -148,7 +157,11 @@ class DishApi(Resource):
 
     @swagger.doc({
         'tags': ['dish'],
-        'description': 'Deletes a dish',
+        'description': '''An endpoint allowing to delete dish by its id in **path**.\
+                Note, that it will not allow you to delete dish from other \
+                institution other than the one that current user \
+                belongs to. \n Params: \n \
+                * (Required)`id`: Identifier of specific dish''',
         'parameters': [
             {
                 'name': 'id',
@@ -164,13 +177,27 @@ class DishApi(Resource):
             '200': {
                 'description': 'Successfully deleted dish',
             }
-        }
+        },
+        'security': [
+            {
+                'api_key': []
+            }
+        ]
     })
+    @jwt_required()
     def delete(self, id):
         """Delete dish"""
+        claims = get_jwt()
+        user_institution_id = claims['institution_id']
+
         dish = db.session.query(Dish).filter(Dish.id == id).first()
+
         if not dish:
             return jsonify({'msg': 'No dish found'})
+
+        if dish.institution_id != user_institution_id:
+            return jsonify({'msg': 'This dish does not belong to current institution and therefore cannot delete it'})
+
         db.session.delete(dish)
         db.session.commit()
 
@@ -361,4 +388,3 @@ class DishMenuApi(Resource):
         db.session.commit()
 
         return jsonify({"msg": "Successfully deleted dish menu"})
-
