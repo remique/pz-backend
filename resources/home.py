@@ -1,6 +1,8 @@
 from flask import Response, request, jsonify, make_response, json
-from database.models import User, Activity, Role, Attendance, Image
-from .schemas import UserGetSchema, UserTokenSchema, UserHomeSchema
+from database.models import (
+    User, Activity, Role, Attendance, Image, News
+)
+from .schemas import UserGetSchema, UserTokenSchema, UserHomeSchema, NewsSchema
 from database.db import db
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
@@ -11,10 +13,12 @@ from .swagger_models import User as UserSwaggerModel
 from flask_sqlalchemy import SQLAlchemy
 from .security import generate_salt, generate_hash
 from datetime import datetime, timedelta
+from sqlalchemy import and_, or_
 
 import math
 
 user_home_schema = UserHomeSchema(many=True)
+news_schema = NewsSchema(many=True)
 
 
 class HomeStatsApi(Resource):
@@ -29,10 +33,15 @@ class HomeStatsApi(Resource):
                 \n * `images`: How many photos are there overall \
                 in an institution \
                 \n * `absence`: Returns the count of absent users in the \
-                last seven days''',
+                last seven days \
+                \n * `news`: Returns last 5 news in current institution. Sorted \
+                by *created_at* descending''',
         'responses': {
             '200': {
                 'description': 'Successfully got all the users',
+            },
+            '401': {
+                'description': 'Unauthorized request',
             }
         },
         'security': [
@@ -45,6 +54,7 @@ class HomeStatsApi(Resource):
     def get(self):
         """Return home stats"""
         claims = get_jwt()
+        current_user_id = claims['id']
         user_institution_id = claims['institution_id']
 
         teacher_role = Role.query.filter(Role.title == "Teacher").first()
@@ -52,11 +62,13 @@ class HomeStatsApi(Resource):
 
         num_of_teachers = User.query\
             .filter(User.roles.any(id=teacher_role.id))\
+            .filter(User.active == 1)\
             .filter(User.institution_id == user_institution_id)\
             .count()
 
         num_of_children = User.query\
             .filter(User.roles.any(id=child_role.id))\
+            .filter(User.active == 1)\
             .filter(User.institution_id == user_institution_id)\
             .count()
 
@@ -67,7 +79,7 @@ class HomeStatsApi(Resource):
             .all()
 
         last_seven_days = [datetime.today() - timedelta(days=i)
-                           for i in range(1, 7)]
+                           for i in range(0, 7)]
 
         attendances = []
         for day in last_seven_days:
@@ -95,6 +107,13 @@ class HomeStatsApi(Resource):
         all_photos = Image.query\
             .filter(Image.institution_id == user_institution_id).count()
 
+        news_query = News.query\
+            .filter(News.institution_id == user_institution_id)\
+            .order_by(News.created_at.desc())\
+            .limit(5).all()
+
+        news_loads = news_schema.dump(news_query)
+
         new_users_result = user_home_schema.dump(new_users)
 
         result = {
@@ -103,6 +122,7 @@ class HomeStatsApi(Resource):
             "new_users": new_users_result,
             "images": all_photos,
             "absence": attendances,
+            "news": news_loads
         }
 
         return jsonify(result)
