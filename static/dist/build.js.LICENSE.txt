@@ -1432,6 +1432,8 @@ PERFORMANCE OF THIS SOFTWARE.
 
 /*! ./sr-Cyrl */
 
+/*! ./sr-Latn */
+
 /*! ./stack */
 
 /*! ./sv */
@@ -1467,6 +1469,8 @@ PERFORMANCE OF THIS SOFTWARE.
 /*! ./util/timestamp */
 
 /*! ./utils */
+
+/*! ./vi */
 
 /*! ./zh-Hans */
 
@@ -1684,7 +1688,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
 /*! exports provided: VWindow, VWindowItem, default */
 
-/*! exports provided: af, ar, bg, ca, ckb, cs, de, el, en, es, et, fa, fi, fr, hr, hu, he, id, it, ja, ko, lv, lt, nl, no, pl, pt, ro, ru, sk, sl, srCyrl, sv, th, tr, az, uk, zhHans, zhHant */
+/*! exports provided: af, ar, bg, ca, ckb, cs, de, el, en, es, et, fa, fi, fr, hr, hu, he, id, it, ja, ko, lv, lt, nl, no, pl, pt, ro, ru, sk, sl, srCyrl, srLatn, sv, th, tr, az, uk, vi, zhHans, zhHant */
 
 /*! exports provided: attachedRoot */
 
@@ -1926,6 +1930,10 @@ PERFORMANCE OF THIS SOFTWARE.
   !*** ./src/locale/uk.ts ***!
   \**************************/
 
+/*!**************************!*\
+  !*** ./src/locale/vi.ts ***!
+  \**************************/
+
 /*!***************************!*\
   !*** ./src/locale/ckb.ts ***!
   \***************************/
@@ -1956,6 +1964,10 @@ PERFORMANCE OF THIS SOFTWARE.
 
 /*!*******************************!*\
   !*** ./src/locale/sr-Cyrl.ts ***!
+  \*******************************/
+
+/*!*******************************!*\
+  !*** ./src/locale/sr-Latn.ts ***!
   \*******************************/
 
 /*!*******************************!*\
