@@ -41,7 +41,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(40), nullable=False)
     password = db.Column(db.String(64), nullable=False)
-    salt = db.Column(db.String(16), nullable=False)
+    salt = db.Column(db.String(64), nullable=False)
     firstname = db.Column(db.String(20), nullable=False)
     surname = db.Column(db.String(40), nullable=False)
     sex = db.Column(db.Integer, nullable=False)
@@ -293,4 +293,3 @@ class Attendance(db.Model):
 #    def __init__(self, is_delayed, delay):
 #        self.is_delayed = is_delayed
 #        self.delay = delay
-
