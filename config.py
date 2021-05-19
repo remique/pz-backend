@@ -1,5 +1,6 @@
 # TODO: Poustawiac jakos legitnie te configi
 import os
+import re
 
 
 class Config(object):
@@ -14,7 +15,11 @@ class Config(object):
 
 class ProductionConfig(Config):
     # SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:1234@localhost/test_database'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    uri = os.getenv("DATABASE_URL")
+    if uri.startswith("postgres://"):
+        uri = uri.replace("postgres://", "postgresql://", 1)
+
+    SQLALCHEMY_DATABASE_URI = uri
 
 
 class DevelopmentConfig(Config):
