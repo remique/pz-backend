@@ -210,10 +210,17 @@ class GroupActivitiesApi(Resource):
         # Get users with given role
         users = list(filter(lambda x: role in x.roles, users))
 
+        users_clone = []
+
         for usr in users:
             # print(usr.groups)
-            for grp in usr.groups:
-                print("Found: ", grp.name)
+            in_groups = group in usr.groups
+            print("Is group queried in usr.groups?: ", in_groups)
+            if in_groups:
+                users_clone.append(usr)
+            # for grp in usr.groups:
+
+        print(users_clone)
 
         # Get users with given group
         users = list(filter(lambda x: group in x.groups, users))
