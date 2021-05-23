@@ -213,11 +213,11 @@ class GroupActivitiesApi(Resource):
         users_clone = []
 
         for usr in users:
-            # print(usr.groups)
-            in_groups = group in usr.groups
-            print("Is group queried in usr.groups?: ", in_groups)
-            if in_groups:
-                users_clone.append(usr)
+            print(usr.groups)
+            # in_groups = group in usr.groups
+            # print("Is group queried in usr.groups?: ", in_groups)
+            # if in_groups:
+            #     users_clone.append(usr)
             # for grp in usr.groups:
 
         print(users_clone)
