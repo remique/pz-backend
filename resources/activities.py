@@ -195,6 +195,8 @@ class GroupActivitiesApi(Resource):
         role = Role.query.filter(Role.title == role_str).first()
         group = Group.query.filter(Group.name == group_str).first()
 
+        print("Searching for: ", group.name)
+
         if not role:
             return jsonify({'msg': 'Child role doesnt exist'})
 
@@ -209,7 +211,9 @@ class GroupActivitiesApi(Resource):
         users = list(filter(lambda x: role in x.roles, users))
 
         for usr in users:
-            print(usr.groups)
+            # print(usr.groups)
+            for grp in usr.groups:
+                print("Found: ", grp.name)
 
         # Get users with given group
         users = list(filter(lambda x: group in x.groups, users))
