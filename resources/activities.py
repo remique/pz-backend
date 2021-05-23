@@ -202,14 +202,18 @@ class GroupActivitiesApi(Resource):
             return jsonify({'msg': 'Group doesnt exist'})
 
         activities = Activity.query.all()
-        #Get users from user institution
-        users = User.query.filter(User.institution_id == current_user_inst_id).all()
-        #Get users with given role
+        # Get users from user institution
+        users = User.query.filter(
+            User.institution_id == current_user_inst_id).all()
+        print(users)
+        # Get users with given role
         users = list(filter(lambda x: role in x.roles, users))
-        #Get users with given group
+        print(users)
+        # Get users with given group
         users = list(filter(lambda x: group in x.groups, users))
+        print(users)
 
-        #Get activities
+        # Get activities
         for u in activities:
             user = list(filter(lambda x: x.id == u.user_id, users))
             if(user):
