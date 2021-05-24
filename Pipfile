@@ -21,6 +21,7 @@ flask-apscheduler = "*"
 sqlalchemy = "*"
 psycopg2 = "*"
 gunicorn = "*"
+pusher = "*"
 
 [requires]
 python_version = "3.7"

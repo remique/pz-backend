@@ -83,7 +83,9 @@ class ActivitySchema(ma.Schema):
     class Meta:
         model = Activity
         ordered = True
-        fields = ("id", "sleep", "food_scale", "user_id")
+        fields = ("id", "sleep", "food_scale", "activity_user")
+
+    activity_user = ma.Nested('UserLookupSchema', many=False, data_key='user')
 
 
 class DishSchema(ma.Schema):
@@ -187,6 +189,9 @@ class AttendanceSchema(ma.Schema):
     class Meta:
         model = Attendance
         ordered = True
-        fields = ("id", "date", "present", "user_id")
+        fields = ("id", "date", "present", "attendance_user")
+
+    attendance_user = ma.Nested(
+        'UserLookupSchema', many=False, data_key='user')
 
     date = ma.DateTime('%Y-%m-%d')
