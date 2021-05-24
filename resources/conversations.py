@@ -1,3 +1,4 @@
+from database.db import pusher_client
 from flask import Response, request, jsonify, make_response, json
 from database.models import Conversation, User, ConversationReply
 from .schemas import (
@@ -249,6 +250,14 @@ class ConversationReplyApi(Resource):
 
         db.session.add(new_conv_reply)
         db.session.commit()
+
+        push_message = conversation_reply_schema.dump(new_conv_reply)
+
+        # pusher_client.trigger(u'my-channel', u'my-event',
+        #                       {u'message': u'hello world'})
+
+        pusher_client.trigger(u'my-channel', u'my-event',
+                              push_message)
 
         return conversation_reply_schema.jsonify(new_conv_reply)
 

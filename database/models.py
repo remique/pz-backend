@@ -122,6 +122,9 @@ class Activity(db.Model):
     food_scale = db.Column(db.Integer, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
+    activity_user = db.relationship(
+        'User', backref='activity_test', lazy=True, uselist=False)
+
     def __init__(self, sleep, food_scale):
         self.sleep = sleep
         self.food_scale = food_scale
@@ -278,6 +281,9 @@ class Attendance(db.Model):
     date = db.Column(db.Date, nullable=False)
     present = db.Column(db.Integer, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    attendance_user = db.relationship(
+        'User', backref='attendance_user', lazy=True, uselist=False)
 
     def __init__(self, date, present, user_id):
         self.date = date
