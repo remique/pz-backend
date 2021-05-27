@@ -264,6 +264,7 @@ class Album(db.Model):
         'institution.id'), nullable=False)
     img_count = db.Column(db.Integer, nullable=False)
     images = db.relationship('Image', secondary=image_has_album_image,
+                             cascade="all,delete",
                              backref=db.backref('albums', lazy='dynamic'))
 
     def __init__(self, name, date, created_at, updated_at, description, institution_id):
